@@ -5,7 +5,7 @@
 
 void loadCursorMouseIMG()
 {
-    //image: https://www.pngegg.com/
+    //image: https://www.pngegg.com/en/
     const char* path = (imagePath + "aim0.png").c_str();
     SDL_Surface* cursorSurface = IMG_Load(path);
     if (cursorSurface == NULL) {
