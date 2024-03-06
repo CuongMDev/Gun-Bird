@@ -47,7 +47,7 @@ void Background::init()
 
 void Background::loadIMG()
 {
-    //image: https://flappybird.io/
+    //image: https://vi.pngtree.com/freebackground/forest-landscape-horizontal-seamless-background-for-games-apps_1800315.html
     mTexture.loadFromFile(imagePath + "background.png");
 }
 

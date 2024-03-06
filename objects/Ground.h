@@ -46,7 +46,7 @@ void Ground::init(int x, int y)
 
 void Ground::loadIMG()
 {
-    //image: https://flappybird.io/
+    //image: https://www.freepik.com/free-vector/game-seamless-ground-texture-layer-cartoon-vector-grass-land-desert-surface-gravel-pattern-ice-floor-lava-formation-environment-illustration-set-mobile-app-underground-stone-ui-path_67808349.htm#query=2d%20ground&position=0&from_view=keyword&track=ais&uuid=1be95183-12b3-4e28-8e24-4604b89d1b8e
     mTexture.loadFromFile(imagePath + "ground.png");
 }
 
