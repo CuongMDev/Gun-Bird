@@ -3,12 +3,12 @@
 
 #include "../LTexture.h"
 #include "Ground.h"
-#include <math.h>
+#include "Guns.h"
 
 const int mainBirdPosX = 5;
-const int mainBirdPosY = 350;
+int mainBirdPosY = SCREEN_HEIGHT / 2;
 
-class MainBird
+class MainBird :private Guns
 {
 private:
     LTexture mTexture[3];
@@ -20,14 +20,15 @@ private:
     int mPosX, mPosY;
     //The velocity
     int mVelX, mVelY;
-    //The angel
+    //The angle
     double mAngle;
 
     void init(int x, int y);
     void loadIMG();
-    void turnTowards(int mouseX, int mouseY);
 
+    bool isStayingOnGround();
     bool checkCollision(const Ground& ground);
+    bool checkOutBorder();
 public:
     MainBird(int x, int y);
     ~MainBird();
@@ -41,6 +42,8 @@ MainBird::MainBird(int x, int y)
 {
     init(x, y);
     loadIMG();
+
+    initGun(x + mTexture[curIMGRender].getWidth() / 3, y + mTexture[curIMGRender].getHeight() * 2 / 3);
 }
 
 MainBird::~MainBird()
@@ -77,18 +80,22 @@ void MainBird::loadIMG()
     mTexture[2].loadFromFile(imagePath + "mainBird2.png", true, 124, 197, 205);
 }
 
-void MainBird::turnTowards(int mouseX, int mouseY)
+bool MainBird::isStayingOnGround()
 {
-    double dx = mouseX - mPosX;
-    double dy = mouseY - mPosY;
-    double angle = atan2(dy, dx) * 180 / M_PI;
-
-    mAngle = angle;
+    return (mPosY + mTexture[curIMGRender].getHeight() == groundPosY + 10);
 }
 
 bool MainBird::checkCollision(const Ground& ground)
 {
     if (mPosY + mTexture[curIMGRender].getHeight() > groundPosY + 10) {
+        return true;
+    }
+    return false;
+}
+
+bool MainBird::checkOutBorder()
+{
+    if (mPosY + mTexture[curIMGRender].getHeight() < 0) {
         return true;
     }
     return false;
@@ -103,28 +110,43 @@ void MainBird::handleEvent(SDL_Event e)
             mVelY = 15;
         }
     }
-    else if (e.type == SDL_MOUSEMOTION) {
-        int mouseX, mouseY;
-        SDL_GetMouseState(&mouseX, &mouseY);
-        turnTowards(mouseX, mouseY);
+    else {
+        handleGunEvent(e);
     }
 }
 
 void MainBird::move(const Ground& ground)
 {
     mPosY -= mVelY;
-    if (checkCollision(ground)) {
-        //stay on the ground
-        int t = mTexture[curIMGRender].getHeight();
-        mPosY = groundPosY + 10 - mTexture[curIMGRender].getHeight();
+
+    if (checkOutBorder()) {
+        mPosY = -mTexture[curIMGRender].getHeight();
         //reset Y velocity
         mVelY = 0;
+    }
+
+    if (checkCollision(ground)) {
+        //not staying on the ground
+        if (!isStayingOnGround()) {
+            mPosY = groundPosY + 10 - mTexture[curIMGRender].getHeight();
+            updateGunPosAndAngle(mPosX + mTexture[curIMGRender].getWidth() / 3, mPosY + mTexture[curIMGRender].getHeight() / 3);
+        }
+        else {
+            mPosY += mVelY;
+        }
+        //reset Y velocity
+        mVelY = 0;
+    }
+    else {
+        //update gun angle if bird is moving
+        updateGunPosAndAngle(mPosX + mTexture[curIMGRender].getWidth() / 3, mPosY + mTexture[curIMGRender].getHeight() / 3);
     }
 }
 
 void MainBird::render()
 {
     mTexture[curIMGRender].render(mPosX, mPosY, NULL, mAngle);
+    renderGun();
 
     //Decrease Y velocity because of gravitation
     mVelY--;
