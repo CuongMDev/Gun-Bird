@@ -8,7 +8,7 @@
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 621;
 
-int gVelocityYScene = 10;
+int gVelocityYScene = 5;
 
 const std::string imagePath = "image/";
 
