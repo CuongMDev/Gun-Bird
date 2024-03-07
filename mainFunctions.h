@@ -3,6 +3,8 @@
 
 #include "mainData.h"
 #include "CursorMouse.h"
+#include <cstdlib>
+#include <ctime>
 
 //Starts up SDL and creates window
 bool init();
@@ -54,6 +56,8 @@ bool init()
     }
 
     loadCursorMouseIMG();
+    //take random over time
+    srand(time(0));
 
     return success;
 }
