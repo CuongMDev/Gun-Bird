@@ -3,14 +3,20 @@
 
 #include "mainData.h"
 #include "CursorMouse.h"
+#include "objects.h"
 #include <cstdlib>
 #include <ctime>
+#include <list>
 
 //Starts up SDL and creates window
 bool init();
 
 //Frees media and shuts down SDL
 void close();
+
+void renderPipe(std::list<Pipe*>& pipeList);
+
+void startPlaying();
 
 bool init()
 {
@@ -73,6 +79,35 @@ void close()
     //Quit SDL subsystems
     IMG_Quit();
     SDL_Quit();
+}
+
+void renderPipe(std::list<Pipe*>& pipeList)
+{
+    if (SDL_GetTicks() >= createdTime) {
+        //random flip
+        bool flip = getRandomNumber(0, 1);
+        //pipe height
+        int pipeHeight = getRandomNumber(50, 300);
+        //create new pipe
+        Pipe* pipe = new Pipe(getRandomNumber(50, SCREEN_HEIGHT / 2), flip);
+        pipeList.push_back(pipe);
+
+        //reset created time
+        createdTime = SDL_GetTicks() + getRandomNumber(500, 1000);
+    }
+
+    //render pipe
+    for (auto pipe = pipeList.begin(); pipe != pipeList.end();) {
+        if (!(*pipe)->render()) {
+            delete (*pipe);
+            pipe = pipeList.erase(pipe);
+        }
+        else pipe++;
+    }
+}
+
+void startPlaying()
+{
 }
 
 #endif
