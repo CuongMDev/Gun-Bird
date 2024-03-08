@@ -47,7 +47,7 @@ void Background::init()
 
 void Background::loadIMG()
 {
-    //image: https://vi.pngtree.com/freebackground/forest-landscape-horizontal-seamless-background-for-games-apps_1800315.html
+    //image: https://www.freepik.com/free-vector/nature-roadside-background-scene_40169781.htm#query=pixel%20sky%20background&position=2&from_view=keyword&track=ais&uuid=139c01bd-968c-4c3e-9f4f-1612c7cd6e5f
     mTexture.loadFromFile(imagePath + "background.png");
 }
 

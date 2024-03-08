@@ -16,12 +16,16 @@ private:
     bool mFlip;
 
     bool checkOutTheBorder();
-
     void init(int height, bool flip);
     void loadIMG();
 public:
     Pipe(int height, bool flip);
     ~Pipe();
+
+    int getPosX();
+    int getPosY();
+    int getHeight();
+    int getWitdh();
 
     bool render();
 };
@@ -63,6 +67,26 @@ void Pipe::loadIMG()
 {
     //image: https://github.com/terroo/flappybird/tree/main
     mTexture.loadFromFile(imagePath + "pipe.png");
+}
+
+inline int Pipe::getPosX()
+{
+    return mPosX;
+}
+
+inline int Pipe::getPosY()
+{
+    return mPosY;
+}
+
+inline int Pipe::getHeight()
+{
+    return mHeight;
+}
+
+inline int Pipe::getWitdh()
+{
+    return mTexture.getWidth();
 }
 
 bool Pipe::render()
