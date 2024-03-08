@@ -4,7 +4,6 @@
 #include "mainData.h"
 #include "CursorMouse.h"
 #include "objects.h"
-#include <cstdlib>
 #include <ctime>
 #include <list>
 
