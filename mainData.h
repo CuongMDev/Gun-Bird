@@ -6,8 +6,10 @@
 #include <iostream>
 
 const int SCREEN_WIDTH = 1200;
-const int SCREEN_HEIGHT = 621;
+const int SCREEN_HEIGHT = 630;
 
+//pipe will be created when current time = this
+Uint32 createdTime = 2000;
 int gVelocityYScene = 5;
 bool gameOver = false;
 
