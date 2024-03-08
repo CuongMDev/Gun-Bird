@@ -6,7 +6,7 @@
 //lazyfoo https://lazyfoo.net/tutorials/SDL/
 
 class LTexture
-
+{
 private:
     //The actual hardware texture
     SDL_Texture *mTexture;
