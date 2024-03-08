@@ -15,7 +15,7 @@ int gVelocityYScene = gInitVelocityYScene;
 
 bool gameOver = false;
 
-const std::string imagePath = "image/"
+const std::string imagePath = "image/";
 const std::string gunImagePath = imagePath + "gun/";
 
 SDL_Window *gWindow = NULL;
