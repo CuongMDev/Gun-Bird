@@ -1,10 +1,4 @@
 #include "mainFunctions.h"
-#include "objects.h"
-#include <list>
-
-//pipe will be created when current time = this
-Uint32 createdTime = 2000;
-void renderPipe(std::list<Pipe*>& pipeList);
 
 int main(int argc, char* args[])
 {
@@ -40,13 +34,11 @@ int main(int argc, char* args[])
                 mainBird.handleEvent(e);
             }
 
-            mainBird.move(ground);
-
             //Render
             background.render();
             ground.render();
-            mainBird.render();
             renderPipe(pipeList);
+            mainBird.render(ground, pipeList);
 
             //Update screen
             SDL_RenderPresent(gRenderer);
@@ -57,29 +49,4 @@ int main(int argc, char* args[])
     close();
 
     return 0;
-}
-
-void renderPipe(std::list<Pipe*>& pipeList)
-{
-    if (SDL_GetTicks() >= createdTime) {
-        //random flip
-        bool flip = getRandomNumber(0, 1);
-        //pipe height
-        int pipeHeight = getRandomNumber(50, 300);
-        //create new pipe
-        Pipe* pipe = new Pipe(getRandomNumber(50, SCREEN_HEIGHT / 2), flip);
-        pipeList.push_back(pipe);
-
-        //reset created time
-        createdTime = SDL_GetTicks() + 2000 + getRandomNumber(1000, 3000);
-    }
-
-    //render pipe
-    for (auto pipe = pipeList.begin(); pipe != pipeList.end();) {
-        if (!(*pipe)->render()) {
-            delete (*pipe);
-            pipe = pipeList.erase(pipe);
-        }
-        else pipe++;
-    }
 }
