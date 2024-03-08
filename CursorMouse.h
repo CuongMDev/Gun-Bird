@@ -1,7 +1,7 @@
 #ifndef AIMMOUSE_H
 #define AIMMOUSE_H
 
-#include "mainData.h"
+#include "mainData.h
 #include "utils.h"
 
 void loadCursorMouseIMG()
