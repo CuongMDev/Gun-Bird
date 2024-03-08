@@ -13,8 +13,6 @@ const int gInitVelocityYScene = 5;
 Uint32 createdTime = 2000;
 int gVelocityYScene = gInitVelocityYScene;
 
-bool gameOver = false;
-
 const std::string imagePath = "image/";
 const std::string gunImagePath = imagePath + "gun/";
 

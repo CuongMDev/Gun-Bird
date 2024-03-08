@@ -21,9 +21,9 @@ bool checkCollision(const int &p1X, const int &p1Y, const int &p1W, const int &p
     if (p1X + p1W < p2X) return false;
 
     if (p1Y > p2Y + p2H) return false;
-    if (p1Y + p1H < p2Y) return false
+    if (p1Y + p1H < p2Y) return false;
 
-        return true;
+    return true;
 }
 
 #endif

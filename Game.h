@@ -10,6 +10,7 @@ private:
     Background *background;
     Ground *ground;
     MainBird *mainBird;
+    GameOver *gameOver;
 
     bool checkOutTheBorder();
 
@@ -23,6 +24,7 @@ public:
     ~Game();
 
     void handleEvent(SDL_Event e);
+    void handleKey(const Uint8 *currentKeyStates);
     void render();
 };
 
@@ -34,12 +36,12 @@ void Game::handleGameOver()
 
 void Game::resetGame()
 {
-    gameOver = false;
     Pipe::reset();
     Bullets::reset();
 
     gVelocityYScene = gInitVelocityYScene;
 
+    gameOver->reset();
     mainBird->init(mainBirdPosX, mainBirdPosY);
 }
 
@@ -48,6 +50,7 @@ Game::Game()
     background = new Background();
     ground = new Ground(groundPosX, groundPosY);
     mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
+    gameOver = new GameOver();
 }
 
 Game::~Game()
@@ -62,9 +65,14 @@ void Game::handleEvent(SDL_Event e)
     mainBird->handleEvent(e);
 }
 
+void Game::handleKey(const Uint8 *currentKeyStates)
+{
+    mainBird->handleKey(currentKeyStates);
+}
+
 void Game::render()
 {
-    if (gameOver) {
+    if (GameOver::gameIsOver()) {
         handleGameOver();
     }
 
@@ -72,7 +80,10 @@ void Game::render()
     ground->render();
     Pipe::renderAll();
 
-    mainBird->render();
+    //bird is in ground
+    if (!mainBird->render()) {
+        gameOver->render();
+    }
 }
 
 #endif

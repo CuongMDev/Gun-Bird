@@ -5,5 +5,6 @@
 #include "objects/Ground.h"
 #include "objects/Background.h"
 #include "objects/Pipe.h"
+#include "objects/GameOver.h"
 
 #endif

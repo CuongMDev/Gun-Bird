@@ -22,6 +22,8 @@ int main(int argc, char *args[])
             SDL_RenderClear(gRenderer);
 
             //Handle events on list
+            const Uint8 *currentKeyStates = SDL_GetKeyboardState(NULL);
+            game.handleKey(currentKeyStates);
             while (SDL_PollEvent(&e) != 0) {
                 //User requests quit
                 if (e.type == SDL_QUIT) {
