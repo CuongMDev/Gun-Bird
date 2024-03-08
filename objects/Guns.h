@@ -2,6 +2,7 @@
 #define GUNS_H
 
 #include "Bullets.h"
+#include "../CursorMouse.h"
 #include <math.h>
 #include <list>
 
@@ -17,8 +18,6 @@ private:
     int mPosX, mPosY;
     //The angle
     double mAngle;
-    //list of bullets
-    std::list<Bullets*> bulletsList;
 
     void loadGunIMG();
     void turnTowards(int mouseX, int mouseY);
@@ -26,10 +25,10 @@ private:
     void shoot();
 
 protected:
-    void initGun(int x, int y);
+    void initGun();
     void renderGun();
     void handleGunEvent(SDL_Event e);
-    void updateGunPosAndAngle(int x, int y);
+    void setGunPosAndAngle(int x, int y);
 
     Guns();
     ~Guns();
@@ -50,16 +49,15 @@ Guns::~Guns()
     // }
 }
 
-void Guns::initGun(int x, int y)
+void Guns::initGun()
 {
     loadGunIMG();
-    updateGunPosAndAngle(x, y);
 }
 
 void Guns::loadGunIMG()
 {
     //image: https://midnitepixelated.itch.io/pixel-guns
-    mTexture.loadFromFile(imagePath + "gun0.png", true, 67, 76, 111);
+    mTexture.loadFromFile(gunImagePath + "gun0.png", true, 67, 76, 111);
 }
 
 void Guns::turnTowards(int mouseX, int mouseY)
@@ -80,16 +78,10 @@ void Guns::updateAngle()
 
 void Guns::shoot()
 {
-    int bulletMPosX = mPosX;
-    if (mAngle > 40) {
-        bulletMPosX += mTexture.getWidth() / 2;
-    }
-    //create bullet
-    Bullets* bullet = new Bullets(bulletMPosX, mPosY, mAngle);
     //recoil
-    mouseRecoil(bulletsList.size(), 5 * bulletsList.size());
-    //add to list
-    bulletsList.push_back(bullet);
+    recoilMouse(bulletsList.size(), 5 * bulletsList.size());
+    //create bullet
+    Bullets::add(mPosX, mPosY, mAngle);
 }
 
 void Guns::handleGunEvent(SDL_Event e)
@@ -98,24 +90,22 @@ void Guns::handleGunEvent(SDL_Event e)
         updateAngle();
     }
     else if (e.type == SDL_MOUSEBUTTONDOWN) {
-        shoot();
+        if (e.button.button == SDL_BUTTON_LEFT) {
+            // left mouse button pressed
+            shoot();
+        }
     }
 }
 
 void Guns::renderGun()
 {
-    mTexture.render(mPosX, mPosY, NULL, mAngle);
-    //render bullets
-    for (auto bullet = bulletsList.begin(); bullet != bulletsList.end();) {
-        if (!(*bullet)->render()) {
-            delete (*bullet);
-            bullet = bulletsList.erase(bullet);
-        }
-        else bullet++;
-    }
+    Bullets::renderAll();
+
+    SDL_Point center{ pivotX, pivotY };
+    mTexture.render(mPosX, mPosY, NULL, mAngle, &center);
 }
 
-void Guns::updateGunPosAndAngle(int x, int y)
+void Guns::setGunPosAndAngle(int x, int y)
 {
     mPosX = x;
     mPosY = y;

@@ -1,7 +1,6 @@
 #ifndef MAINBIRD_H
 #define MAINBIRD_H
 
-#include "../LTexture.h"
 #include "Ground.h"
 #include "Guns.h"
 #include "Pipe.h"
@@ -31,25 +30,26 @@ private:
     //check whether bird died
     bool died;
 
-    void init(int x, int y);
     void loadIMG();
-    bool playingRender(const Ground& ground, const std::list<Pipe*>& pipeList);
-    bool dyingRender(const Ground& ground);
+    bool playingRender();
+    bool dyingRender();
 
     bool isStayingOnGround();
     bool checkOutBorder();
 
-    bool checkCollision(const Ground& ground);
-    bool checkCollision(const std::list<Pipe*>& pipeList);
+    bool checkGroundCollision();
+    bool checkPipeCollision();
 
 public:
     MainBird(int x, int y);
     ~MainBird();
 
+
+    void init(int x, int y);
     void handleEvent(SDL_Event e);
 
-    bool move(const Ground& ground);
-    bool render(const Ground& ground, const std::list<Pipe*>& pipeList);
+    bool move();
+    bool render();
 };
 
 MainBird::MainBird(int x, int y)
@@ -57,7 +57,7 @@ MainBird::MainBird(int x, int y)
     init(x, y);
     loadIMG();
 
-    initGun(x + mTexture[curIMGRender].getWidth() / 3, y + mTexture[curIMGRender].getHeight() * 2 / 3);
+    initGun();
 }
 
 MainBird::~MainBird()
@@ -90,6 +90,8 @@ void MainBird::init(int x, int y)
 
     limitAngleUpper = -45;
     limitAngleLower = 0;
+
+    setGunPosAndAngle(x + mTexture[curIMGRender].getWidth() / 3, y + mTexture[curIMGRender].getHeight() * 2 / 3);
 }
 
 void MainBird::loadIMG()
@@ -100,10 +102,10 @@ void MainBird::loadIMG()
     mTexture[2].loadFromFile(imagePath + "mainBird2.png", true, 124, 197, 205);
 }
 
-bool MainBird::playingRender(const Ground& ground, const std::list<Pipe*>& pipeList)
+bool MainBird::playingRender()
 {
-    move(ground);
-    if (checkCollision(pipeList)) {
+    move();
+    if (checkPipeCollision()) {
         gameOver = true;
     }
     //change wing flapping speed
@@ -130,7 +132,7 @@ bool MainBird::playingRender(const Ground& ground, const std::list<Pipe*>& pipeL
     return true;
 }
 
-bool MainBird::dyingRender(const Ground& ground)
+bool MainBird::dyingRender()
 {
     //start falling
     if (!died) {
@@ -139,7 +141,6 @@ bool MainBird::dyingRender(const Ground& ground)
         //continue moving
         mVelX = gVelocityYScene;
         mVelY = 15;
-        gVelocityYScene = 0;
         limitAngleLower = 90;
     }
 
@@ -148,7 +149,7 @@ bool MainBird::dyingRender(const Ground& ground)
         mVelX--;
     }
 
-    bool moved = move(ground);
+    bool moved = move();
     mTexture[curIMGRender].render(mPosX, mPosY, NULL, mAngle);
     return moved;
 }
@@ -158,7 +159,7 @@ bool MainBird::isStayingOnGround()
     return (mPosY + mTexture[curIMGRender].getHeight() == groundPosY + 10);
 }
 
-bool MainBird::checkCollision(const Ground& ground)
+bool MainBird::checkGroundCollision()
 {
     if (mPosY + mTexture[curIMGRender].getHeight() > groundPosY + 10) {
         return true;
@@ -166,11 +167,11 @@ bool MainBird::checkCollision(const Ground& ground)
     return false;
 }
 
-bool MainBird::checkCollision(const std::list<Pipe*>& pipeList)
+bool MainBird::checkPipeCollision()
 {
     for (auto pipe : pipeList) {
-        if (pipe->getPosX() <= mPosX + mTexture[curIMGRender].getWidth() && mPosX <= pipe->getPosX() + pipe->getWitdh()
-            && pipe->getPosY() <= mPosY + mTexture[curIMGRender].getHeight() && mPosY <= pipe->getPosY() + pipe->getHeight()) {
+        if (checkCollision(pipe->getPosX(), pipe->getPosY(), pipe->getWidth(), pipe->getHeight(),
+            mPosX, mPosY, mTexture[curIMGRender].getWidth(), mTexture[curIMGRender].getHeight())) {
 
             return true;
         }
@@ -205,7 +206,7 @@ void MainBird::handleEvent(SDL_Event e)
     }
 }
 
-bool MainBird::move(const Ground& ground)
+bool MainBird::move()
 {
     bool moved = false;
     if (mVelX) moved = true;
@@ -229,11 +230,11 @@ bool MainBird::move(const Ground& ground)
         mVelY = 0;
     }
 
-    if (checkCollision(ground)) {
+    if (checkGroundCollision()) {
         //not staying on the ground
         if (!isStayingOnGround()) {
             mPosY = groundPosY + 10 - mTexture[curIMGRender].getHeight();
-            updateGunPosAndAngle(mPosX + mTexture[curIMGRender].getWidth() / 3, mPosY + mTexture[curIMGRender].getHeight() / 3);
+            setGunPosAndAngle(mPosX + mTexture[curIMGRender].getWidth() / 3, mPosY + mTexture[curIMGRender].getHeight() / 3);
             moved = true;
         }
         else {
@@ -244,20 +245,22 @@ bool MainBird::move(const Ground& ground)
     }
     else {
         //update gun angle if bird is moving
-        updateGunPosAndAngle(mPosX + mTexture[curIMGRender].getWidth() / 3, mPosY + mTexture[curIMGRender].getHeight() / 3);
+        setGunPosAndAngle(mPosX + mTexture[curIMGRender].getWidth() / 3, mPosY + mTexture[curIMGRender].getHeight() / 3);
         moved = true;
     }
 
     return moved;
 }
 
-bool MainBird::render(const Ground& ground, const std::list<Pipe*>& pipeList)
+bool MainBird::render()
 {
     bool rendered = false;
     if (!gameOver) {
-        rendered = playingRender(ground, pipeList);
+        rendered = playingRender();
     }
-    else rendered = dyingRender(ground);
+    if (gameOver) {
+        rendered = dyingRender();
+    }
 
     //Decrease Y velocity because of gravitation
     mVelY--;

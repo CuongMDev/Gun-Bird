@@ -1,6 +1,7 @@
 #include "mainFunctions.h"
+#include "Game.h"
 
-int main(int argc, char* args[])
+int main(int argc, char *args[])
 {
     //Start up SDL and create window
     if (!init()) {
@@ -12,11 +13,8 @@ int main(int argc, char* args[])
         //Event handler
         SDL_Event e;
 
-        Background background;
-        Ground ground(groundPosX, groundPosY);
-        MainBird mainBird(mainBirdPosX, mainBirdPosY);
+        Game game;
 
-        std::list<Pipe*> pipeList;
         while (!quit)
         {
             //Clear screen
@@ -31,14 +29,11 @@ int main(int argc, char* args[])
                 }
 
                 //Handle input for the Main Bird
-                mainBird.handleEvent(e);
+                game.handleEvent(e);
             }
 
             //Render
-            background.render();
-            ground.render();
-            renderPipe(pipeList);
-            mainBird.render(ground, pipeList);
+            game.render();
 
             //Update screen
             SDL_RenderPresent(gRenderer);

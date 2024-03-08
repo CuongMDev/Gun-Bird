@@ -3,6 +3,14 @@
 
 #include "../LTexture.h"
 #include "../utils.h"
+#include "Pipe.h"
+
+const int pivotX = 20;
+const int pivotY = 10;
+
+class Bullets;
+//list of bullets
+std::list<Bullets *> bulletsList;
 
 class Bullets
 {
@@ -19,6 +27,7 @@ private:
     double mAngle;
 
     bool checkOutTheBorder();
+    bool checkPipeCollision();
     bool move();
 
     void loadIMG();
@@ -28,8 +37,12 @@ protected:
     void init(int x, int y, double angle);
 
 public:
-    Bullets(int x, int y, double Angle);
+    Bullets(int x, int y, double angle);
     ~Bullets();
+
+    static void add(int x, int y, double Angle);
+    static void reset();
+    static void renderAll();
 
     bool render();
 };
@@ -48,10 +61,38 @@ Bullets::~Bullets()
     // }
 }
 
+void Bullets::add(int x, int y, double angle)
+{
+    //create bullet
+    Bullets *bullet = new Bullets(x, y, angle);
+    bulletsList.push_back(bullet);
+}
+
+void Bullets::reset()
+{
+    //clear bullets
+    for (auto bullet : bulletsList) {
+        delete bullet;
+    }
+    bulletsList.clear();
+}
+
+void Bullets::renderAll()
+{
+    //check collision before render
+    for (auto bullet = bulletsList.begin(); bullet != bulletsList.end();) {
+        if (!(*bullet)->render()) {
+            delete (*bullet);
+            bullet = bulletsList.erase(bullet);
+        }
+        else bullet++;
+    }
+}
+
 void Bullets::init(int x, int y, double angle)
 {
-    mPosX = x;
-    mPosY = y;
+    mPosX = x + pivotX / 2;
+    mPosY = y + pivotY / 2;
 
     mSpeed = 20;
 
@@ -67,6 +108,19 @@ bool Bullets::checkOutTheBorder()
     }
     if (mPosY > SCREEN_HEIGHT || mPosY + mTexture.getHeight() < 0) {
         return true;
+    }
+
+    return false;
+}
+
+bool Bullets::checkPipeCollision()
+{
+    for (auto pipe : pipeList) {
+        if (checkCollision(mPosX, mPosY, mTexture.getWidth(), mTexture.getHeight(),
+            pipe->getPosX(), pipe->getPosY(), pipe->getWidth(), pipe->getHeight())) {
+
+            return true;
+        }
     }
 
     return false;
@@ -102,7 +156,7 @@ bool Bullets::move()
     mPosX += mVelX;
     mPosY += mVelY;
 
-    if (checkOutTheBorder()) return false;
+    if (checkOutTheBorder() || checkPipeCollision()) return false;
     return true;
 }
 

@@ -3,6 +3,9 @@
 
 #include "../LTexture.h"
 
+class Pipe;
+static std::list<Pipe *> pipeList;
+
 class Pipe
 {
 private:
@@ -22,10 +25,13 @@ public:
     Pipe(int height, bool flip);
     ~Pipe();
 
+    static void renderAll();
+    static void reset();
+
     int getPosX();
     int getPosY();
     int getHeight();
-    int getWitdh();
+    int getWidth();
 
     bool render();
 };
@@ -39,6 +45,41 @@ Pipe::Pipe(int height, bool flip)
 Pipe::~Pipe()
 {
     mTexture.free();
+}
+
+void Pipe::renderAll()
+{
+    //create pipe;
+    if (SDL_GetTicks() >= createdTime) {
+        //random flip
+        bool flip = getRandomNumber(0, 1);
+        //pipe height
+        int pipeHeight = getRandomNumber(50, 300);
+        //create new pipe
+        Pipe *pipe = new Pipe(getRandomNumber(50, SCREEN_HEIGHT / 2), flip);
+        pipeList.push_back(pipe);
+
+        //reset created time
+        createdTime = SDL_GetTicks() + getRandomNumber(500, 1000);
+    }
+
+    //render all pipes
+    for (auto pipe = pipeList.begin(); pipe != pipeList.end();) {
+        if (!(*pipe)->render()) {
+            delete (*pipe);
+            pipe = pipeList.erase(pipe);
+        }
+        else pipe++;
+    }
+}
+
+void Pipe::reset()
+{
+    //clear pipes
+    for (auto pipe : pipeList) {
+        delete pipe;
+    }
+    pipeList.clear();
 }
 
 bool Pipe::checkOutTheBorder()
@@ -84,7 +125,7 @@ inline int Pipe::getHeight()
     return mHeight;
 }
 
-inline int Pipe::getWitdh()
+inline int Pipe::getWidth()
 {
     return mTexture.getWidth();
 }

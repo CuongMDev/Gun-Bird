@@ -1,10 +1,7 @@
 #ifndef MAIN_FUNCTIONS_H
 #define MAIN_FUNCTIONS_H
 
-#include "mainData.h"
 #include "CursorMouse.h"
-#include "objects.h"
-#include <cstdlib>
 #include <ctime>
 #include <list>
 
@@ -13,10 +10,6 @@ bool init();
 
 //Frees media and shuts down SDL
 void close();
-
-void renderPipe(std::list<Pipe*>& pipeList);
-
-void startPlaying();
 
 bool init()
 {
@@ -35,7 +28,7 @@ bool init()
         }
 
         //Create window
-        gWindow = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        gWindow = SDL_CreateWindow("Gun-Bird", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
         if (gWindow == NULL) {
             printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
             success = false;
@@ -79,35 +72,6 @@ void close()
     //Quit SDL subsystems
     IMG_Quit();
     SDL_Quit();
-}
-
-void renderPipe(std::list<Pipe*>& pipeList)
-{
-    if (SDL_GetTicks() >= createdTime) {
-        //random flip
-        bool flip = getRandomNumber(0, 1);
-        //pipe height
-        int pipeHeight = getRandomNumber(50, 300);
-        //create new pipe
-        Pipe* pipe = new Pipe(getRandomNumber(50, SCREEN_HEIGHT / 2), flip);
-        pipeList.push_back(pipe);
-
-        //reset created time
-        createdTime = SDL_GetTicks() + getRandomNumber(500, 1000);
-    }
-
-    //render pipe
-    for (auto pipe = pipeList.begin(); pipe != pipeList.end();) {
-        if (!(*pipe)->render()) {
-            delete (*pipe);
-            pipe = pipeList.erase(pipe);
-        }
-        else pipe++;
-    }
-}
-
-void startPlaying()
-{
 }
 
 #endif
