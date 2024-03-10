@@ -75,7 +75,7 @@ void GameOver::initPos() {
     mPosY[HOME] = SCREEN_HEIGHT / 2 + mTexture[HOME].getHeight() / 3;
 
     mPosX[RETRY] = SCREEN_WIDTH / 2 + disBetweenHomeAndRetry;
-    mPosY[RETRY] = SCREEN_HEIGHT / 2 + mTexture[RETRY].getHeight() / 2;
+    mPosY[RETRY] = SCREEN_HEIGHT / 2 + mTexture[RETRY].getHeight() / 3;
 }
 
 void GameOver::loadIMG()
