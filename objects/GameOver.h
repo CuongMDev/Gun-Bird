@@ -4,6 +4,7 @@
 #include "../LTexture.h"
 
 const int gameOverLoadSpeed = 10;
+const int disBetweenHomeAndRetry = 20;
 
 class GameOver {
 private:
@@ -32,6 +33,7 @@ public:
     static void onGameOver(bool value);
 
     void init();
+    void initPos();
     void render();
     void reset();
 };
@@ -61,17 +63,27 @@ void GameOver::onGameOver(bool value) {
 
 void GameOver::init()
 {
-    //Initialize the offsets
-    mPosX[GAMEOVER] = SCREEN_WIDTH / 2 - mTexture[GAMEOVER].getWidth() / 2;
-    mPosY[GAMEOVER] = SCREEN_HEIGHT / 2 - mTexture[GAMEOVER].getHeight() / 2;
-
+    initPos();
     mCurWidth = 0;
+}
+
+void GameOver::initPos() {
+    mPosX[GAMEOVER] = SCREEN_WIDTH / 2 - mTexture[GAMEOVER].getWidth() / 2;
+    mPosY[GAMEOVER] = SCREEN_HEIGHT / 2 - mTexture[GAMEOVER].getHeight();
+
+    mPosX[HOME] = SCREEN_WIDTH / 2 - mTexture[HOME].getWidth() - disBetweenHomeAndRetry / 2;
+    mPosY[HOME] = SCREEN_HEIGHT / 2 + mTexture[HOME].getHeight() / 3;
+
+    mPosX[RETRY] = SCREEN_WIDTH / 2 + disBetweenHomeAndRetry;
+    mPosY[RETRY] = SCREEN_HEIGHT / 2 + mTexture[RETRY].getHeight() / 2;
 }
 
 void GameOver::loadIMG()
 {
     //image: https://www.dreamstime.com/pixel-game-over-text-image-bit-assets-cross-stitch-pattern-t-shirt-design-vector-illustration-image222135423
     mTexture[GAMEOVER].loadFromFile(imagePath + "gameover.png");
+    mTexture[HOME].loadFromFile(imagePath + "home.png");
+    mTexture[RETRY].loadFromFile(imagePath + "retry.png");
 }
 
 void GameOver::render()
@@ -86,7 +98,12 @@ void GameOver::render()
     if (mCurWidth + gameOverLoadSpeed <= mTexture[GAMEOVER].getWidth()) {
         mCurWidth += gameOverLoadSpeed;
     }
-    else mCurWidth = mTexture[GAMEOVER].getWidth();
+    else {
+        mCurWidth = mTexture[GAMEOVER].getWidth();
+
+        mTexture[HOME].render(mPosX[HOME], mPosY[HOME]);
+        mTexture[RETRY].render(mPosX[RETRY], mPosY[RETRY]);
+    }
 }
 
 void GameOver::reset()
