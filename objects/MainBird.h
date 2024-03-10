@@ -48,7 +48,7 @@ public:
 
 
     void init(int x, int y);
-    void handleEvent(SDL_Event e);
+    void handleEvent(SDL_Event *e);
     void handleKey(const Uint8 *currentKeyStates);
 
     bool move();
@@ -136,7 +136,7 @@ bool MainBird::playingRender()
     }
 
     mTexture[curIMGRender].render(mPosX, mPosY, NULL, mAngle);
-    renderGun();
+    //renderGun();
 
     //increase time render
     curTimeRender++;
@@ -217,14 +217,14 @@ bool MainBird::checkOutBorder()
     return false;
 }
 
-void MainBird::handleEvent(SDL_Event e)
+void MainBird::handleEvent(SDL_Event *e)
 {
     if (GameOver::gameIsOver()) {
         return;
     }
-    if (e.type == SDL_KEYDOWN) {
+    if (e->type == SDL_KEYDOWN) {
         //Select surfaces based on key press
-        switch (e.key.keysym.sym) {
+        switch (e->key.keysym.sym) {
         case SDLK_SPACE:
             mVelY = 15;
             mVelAngle = 8;

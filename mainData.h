@@ -10,7 +10,6 @@ const int SCREEN_HEIGHT = 630;
 const int gInitVelocityYScene = 5;
 
 //pipe will be created when current time = this
-Uint32 createdTime = 2000;
 int gVelocityYScene = gInitVelocityYScene;
 
 const std::string imagePath = "image/";

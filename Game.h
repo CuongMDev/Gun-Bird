@@ -3,6 +3,7 @@
 
 #include "objects.h"
 #include "mainData.h"
+#include "CursorMouse.h"
 
 class Game
 {
@@ -11,6 +12,9 @@ private:
     Ground *ground;
     MainBird *mainBird;
     GameOver *gameOver;
+
+    //true if handled when game over;
+    bool gameOverHandled;
 
     bool checkOutTheBorder();
 
@@ -23,15 +27,23 @@ public:
     Game();
     ~Game();
 
-    void handleEvent(SDL_Event e);
+    void handleEvent(SDL_Event *e);
     void handleKey(const Uint8 *currentKeyStates);
+    void handleGameOverButtonClicked(BUTTON buttonClicked);
     void render();
 };
 
 void Game::handleGameOver()
 {
+    if (gameOverHandled) {
+        return;
+    }
+    gameOverHandled = true;
+
     //stop scene move
     gVelocityYScene = 0;
+
+    cursorMouse->setCursor(DEFAULT_CURSOR);
 }
 
 void Game::resetGame()
@@ -43,6 +55,9 @@ void Game::resetGame()
 
     gameOver->reset();
     mainBird->init(mainBirdPosX, mainBirdPosY);
+
+    cursorMouse->setCursor(AIM_CURSOR);
+    gameOverHandled = false;
 }
 
 Game::Game()
@@ -51,23 +66,41 @@ Game::Game()
     ground = new Ground(groundPosX, groundPosY);
     mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
     gameOver = new GameOver();
+    cursorMouse = new CursorMouse();
+    resetGame();
 }
 
 Game::~Game()
 {
 }
 
-void Game::handleEvent(SDL_Event e)
+void Game::handleEvent(SDL_Event *e)
 {
-    if (e.key.keysym.sym == SDLK_LSHIFT) {
-        resetGame();
-    }
     mainBird->handleEvent(e);
+
+    if (GameOver::gameIsOver()) {
+        handleGameOverButtonClicked(gameOver->handleEvent(e));
+    }
 }
 
 void Game::handleKey(const Uint8 *currentKeyStates)
 {
     mainBird->handleKey(currentKeyStates);
+}
+
+void Game::handleGameOverButtonClicked(BUTTON buttonClicked)
+{
+    switch (buttonClicked) {
+        case HOMEBUTTON:
+            //handle
+            break;
+        case RETRYBUTTON:
+            resetGame();
+            break;
+
+        default: //no button clicked
+            break;
+    }
 }
 
 void Game::render()
@@ -85,5 +118,4 @@ void Game::render()
         gameOver->render();
     }
 }
-
 #endif

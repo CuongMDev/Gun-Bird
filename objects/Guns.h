@@ -27,7 +27,7 @@ private:
 protected:
     void initGun();
     void renderGun();
-    void handleGunEvent(SDL_Event e);
+    void handleGunEvent(SDL_Event *e);
     void setGunPosAndAngle(int x, int y);
 
     Guns();
@@ -57,7 +57,7 @@ void Guns::initGun()
 void Guns::loadGunIMG()
 {
     //image: https://midnitepixelated.itch.io/pixel-guns
-    mTexture.loadFromFile(gunImagePath + "gun0.png", true, 67, 76, 111);
+    mTexture.loadFromFile(gunImagePath + "gun3.png", true, 67, 76, 111);
 }
 
 void Guns::turnTowards(int mouseX, int mouseY)
@@ -79,18 +79,18 @@ void Guns::updateAngle()
 void Guns::shoot()
 {
     //recoil
-    recoilMouse(bulletsList.size(), 5 * bulletsList.size());
+    cursorMouse->recoilMouse(bulletsList.size(), 5 * bulletsList.size());
     //create bullet
     Bullets::add(mPosX, mPosY, mAngle);
 }
 
-void Guns::handleGunEvent(SDL_Event e)
+void Guns::handleGunEvent(SDL_Event *e)
 {
-    if (e.type == SDL_MOUSEMOTION) {
+    if (e->type == SDL_MOUSEMOTION) {
         updateAngle();
     }
-    else if (e.type == SDL_MOUSEBUTTONDOWN) {
-        if (e.button.button == SDL_BUTTON_LEFT) {
+    else if (e->type == SDL_MOUSEBUTTONDOWN) {
+        if (e->button.button == SDL_BUTTON_LEFT) {
             // left mouse button pressed
             shoot();
         }

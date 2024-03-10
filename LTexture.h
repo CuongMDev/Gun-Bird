@@ -2,6 +2,7 @@
 #define LTEXTURE_H
 
 #include "mainData.h"
+#include "CursorMouse.h"
 
 //lazyfoo https://lazyfoo.net/tutorials/SDL/
 
@@ -19,7 +20,7 @@ public:
     ~LTexture();
 
     //Loads image at specified path
-    bool loadFromFile(std::string path, bool removeBKG = false, Uint8 r = 0, Uint8 g = 0, Uint8 b = 0);
+    bool loadFromFile(const std::string &path, const bool &removeBKG = false, const Uint8 &r = 0, const Uint8 &g = 0, const Uint8 &b = 0);
 
 #if defined(SDL_TTF_MAJOR_VERSION)
     //Creates image from font string
@@ -39,7 +40,7 @@ public:
     void setAlpha(Uint8 alpha);
 
     //Renders texture at given point
-    void render(int x, int y, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
+    void render(int x, int y, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE, int addWidth = 0, int addHeight = 0);
 
     void handleEvent(SDL_Event &e);
 
@@ -62,7 +63,7 @@ LTexture::~LTexture()
     free();
 }
 
-bool LTexture::loadFromFile(std::string path, bool removeBKG, Uint8 r, Uint8 g, Uint8 b)
+bool LTexture::loadFromFile(const std::string &path,  const bool &removeBKG, const Uint8 &r, const Uint8 &g, const Uint8 &b)
 {
     //Get rid of preexisting texture
     free();
@@ -71,16 +72,11 @@ bool LTexture::loadFromFile(std::string path, bool removeBKG, Uint8 r, Uint8 g, 
     SDL_Texture *newTexture = NULL;
 
     //Load image at specified path
-    SDL_Surface *loadedSurface = IMG_Load(path.c_str());
+    SDL_Surface *loadedSurface = loadSurfaceFromFile(path, removeBKG, r, g, b);
     if (loadedSurface == NULL) {
         printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
     }
     else {
-        //Color key image
-        if (removeBKG) {
-            SDL_SetColorKey(loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format, r, g, b));
-        }
-
         //Create texture from surface pixels
         newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
         if (newTexture == NULL) {
@@ -167,15 +163,15 @@ void LTexture::setAlpha(Uint8 alpha)
     SDL_SetTextureAlphaMod(mTexture, alpha);
 }
 
-void LTexture::render(int x, int y, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip)
+void LTexture::render(int x, int y, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip, int addWidth, int addHeight)
 {
     //Set rendering space and render to screen
-    SDL_Rect renderQuad = { x, y, mWidth, mHeight };
+    SDL_Rect renderQuad = { x - addWidth / 2, y - addHeight / 2, mWidth + addWidth, mHeight + addHeight };
 
     //Set clip rendering dimensions
     if (clip != NULL) {
-        renderQuad.w = clip->w;
-        renderQuad.h = clip->h;
+        renderQuad.w = clip->w + addWidth;
+        renderQuad.h = clip->h + addHeight;
     }
 
     //Render to screen

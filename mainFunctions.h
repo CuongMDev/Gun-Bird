@@ -54,7 +54,6 @@ bool init()
         }
     }
 
-    loadCursorMouseIMG();
     //take random over time
     srand(time(0));
 

@@ -5,6 +5,15 @@
 
 const int gameOverLoadSpeed = 10;
 const int disBetweenHomeAndRetry = 20;
+const int addWidthButton = 20;
+const int addHeightButton = 20;
+
+enum BUTTON
+{
+    NONE,
+    HOMEBUTTON,
+    RETRYBUTTON
+};
 
 class GameOver {
 private:
@@ -22,9 +31,12 @@ private:
     int mPosX[IMAGE_COUNT], mPosY[IMAGE_COUNT];
     //use to create animation
     int mCurWidth;
+    //increase size of image
+    int addWidth[IMAGE_COUNT], addHeight[IMAGE_COUNT];
 
     static bool isOver;
     void loadIMG();
+    bool checkCollisionButton(BUTTON button);
 public:
     GameOver();
     ~GameOver();
@@ -36,6 +48,8 @@ public:
     void initPos();
     void render();
     void reset();
+
+    BUTTON handleEvent(SDL_Event *e);
 };
 
 bool GameOver::isOver = false;
@@ -76,6 +90,11 @@ void GameOver::initPos() {
 
     mPosX[RETRY] = SCREEN_WIDTH / 2 + disBetweenHomeAndRetry;
     mPosY[RETRY] = SCREEN_HEIGHT / 2 + mTexture[RETRY].getHeight() / 3;
+
+    for (int i = 0; i < IMAGE_COUNT; i++) {
+        addHeight[i] = 0;
+        addWidth[i] = 0;
+    }
 }
 
 void GameOver::loadIMG()
@@ -101,8 +120,8 @@ void GameOver::render()
     else {
         mCurWidth = mTexture[GAMEOVER].getWidth();
 
-        mTexture[HOME].render(mPosX[HOME], mPosY[HOME]);
-        mTexture[RETRY].render(mPosX[RETRY], mPosY[RETRY]);
+        mTexture[HOME].render(mPosX[HOME], mPosY[HOME], NULL, 0, NULL, SDL_FLIP_NONE, addWidth[HOME], addHeight[HOME]);
+        mTexture[RETRY].render(mPosX[RETRY], mPosY[RETRY], NULL, 0, NULL, SDL_FLIP_NONE, addWidth[RETRY], addHeight[RETRY]);
     }
 }
 
@@ -110,6 +129,46 @@ void GameOver::reset()
 {
     mCurWidth = 0;
     isOver = false;
+}
+
+BUTTON GameOver::handleEvent(SDL_Event *e)
+{
+    BUTTON buttonCollided = NONE;
+    if (checkCollisionButton(HOMEBUTTON)) {
+        buttonCollided = HOMEBUTTON;
+    }
+    else if (checkCollisionButton(RETRYBUTTON)) {
+        buttonCollided = RETRYBUTTON;
+    }
+
+    if (e->type == SDL_MOUSEBUTTONDOWN) {
+        if (e->button.button == SDL_BUTTON_LEFT) {
+            // left mouse button pressed
+            return buttonCollided;
+        }
+    }
+
+    return NONE;
+}
+
+bool GameOver::checkCollisionButton(BUTTON button)
+{
+    int mouseX, mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    if (checkCollision(mouseX, mouseY, 0, 0, mPosX[button], mPosY[button], mTexture[button].getWidth(), mTexture[button].getHeight())) {
+        addWidth[button] = addWidthButton;
+        addHeight[button] = addHeightButton;
+
+        return true;
+    }
+    else {
+        //reset;
+        addWidth[button] = 0;
+        addHeight[button] = 0;
+
+        return false;
+    }
 }
 
 #endif //GAMEOVER_H

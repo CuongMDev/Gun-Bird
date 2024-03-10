@@ -11,7 +11,7 @@ int main(int argc, char *args[])
         //Main loop flag
         bool quit = false;
         //Event handler
-        SDL_Event e;
+        SDL_Event *e = new SDL_Event();
 
         Game game;
 
@@ -24,9 +24,9 @@ int main(int argc, char *args[])
             //Handle events on list
             const Uint8 *currentKeyStates = SDL_GetKeyboardState(NULL);
             game.handleKey(currentKeyStates);
-            while (SDL_PollEvent(&e) != 0) {
+            while (SDL_PollEvent(e) != 0) {
                 //User requests quit
-                if (e.type == SDL_QUIT) {
+                if (e->type == SDL_QUIT) {
                     quit = true;
                 }
 

@@ -3,8 +3,12 @@
 
 #include "../LTexture.h"
 
+const Uint32 waitTimeBeforePlaying = 2000;
+
 class Pipe;
 static std::list<Pipe *> pipeList;
+//pipe will be created when current time = this
+Uint32 nextCreatedTime = waitTimeBeforePlaying;
 
 class Pipe
 {
@@ -50,7 +54,7 @@ Pipe::~Pipe()
 void Pipe::renderAll()
 {
     //create pipe;
-    if (SDL_GetTicks() >= createdTime) {
+    if (SDL_GetTicks() >= nextCreatedTime) {
         //random flip
         bool flip = getRandomNumber(0, 1);
         //pipe height
@@ -60,7 +64,7 @@ void Pipe::renderAll()
         pipeList.push_back(pipe);
 
         //reset created time
-        createdTime = SDL_GetTicks() + getRandomNumber(500, 1000);
+        nextCreatedTime = SDL_GetTicks() + getRandomNumber(500, 1000);
     }
 
     //render all pipes
@@ -80,6 +84,7 @@ void Pipe::reset()
         delete pipe;
     }
     pipeList.clear();
+    nextCreatedTime = SDL_GetTicks() + waitTimeBeforePlaying;
 }
 
 bool Pipe::checkOutTheBorder()
