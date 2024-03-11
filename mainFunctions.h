@@ -8,6 +8,8 @@
 //Starts up SDL and creates window
 bool init();
 
+bool loadIcon();
+
 //Frees media and shuts down SDL
 void close();
 
@@ -34,21 +36,27 @@ bool init()
             success = false;
         }
         else {
-            //Create vsynced renderer for window
-            gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-            if (gRenderer == NULL) {
-                printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+            if (!loadIcon()) {
+                printf("SDL could not load icon! SDL Error: %s\n", SDL_GetError());
                 success = false;
             }
             else {
-                //Initialize renderer color
-                SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-
-                //Initialize PNG loading
-                int imgFlags = IMG_INIT_PNG;
-                if (!(IMG_Init(imgFlags) & imgFlags)) {
-                    printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+                //Create vsynced renderer for window
+                gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+                if (gRenderer == NULL) {
+                    printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
                     success = false;
+                }
+                else {
+                    //Initialize renderer color
+                    SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+                    //Initialize PNG loading
+                    int imgFlags = IMG_INIT_PNG;
+                    if (!(IMG_Init(imgFlags) & imgFlags)) {
+                        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+                        success = false;
+                    }
                 }
             }
         }
@@ -60,11 +68,23 @@ bool init()
     return success;
 }
 
+bool loadIcon()
+{
+    gIcon = loadSurfaceFromFile(imagePath + "/icon.png");
+    if (gIcon == NULL) {
+        return false;
+    }
+
+    SDL_SetWindowIcon(gWindow, gIcon);
+    return true;
+}
+
 void close()
 {
     //Destroy window	
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
+    SDL_FreeSurface(gIcon);
     gWindow = NULL;
     gRenderer = NULL;
 

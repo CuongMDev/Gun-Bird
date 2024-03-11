@@ -11,17 +11,15 @@ private:
     Background *background;
     Ground *ground;
     MainBird *mainBird;
+    Bat *bat;
     GameOver *gameOver;
 
     //true if handled when game over;
     bool gameOverHandled;
 
-    bool checkOutTheBorder();
-
     void init();
     void handleGameOver();
     void resetGame();
-    void renderPipe(std::list<Pipe *> &pipeList);
 
 public:
     Game();
@@ -65,14 +63,14 @@ Game::Game()
     background = new Background();
     ground = new Ground(groundPosX, groundPosY);
     mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
+    bat = new Bat(100, 100);
     gameOver = new GameOver();
     cursorMouse = new CursorMouse();
     resetGame();
 }
 
 Game::~Game()
-{
-}
+= default;
 
 void Game::handleEvent(SDL_Event *e)
 {
@@ -111,6 +109,7 @@ void Game::render()
 
     background->render();
     ground->render();
+    bat->render();
     Pipe::renderAll();
 
     //bird is in ground

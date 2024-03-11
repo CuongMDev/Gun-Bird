@@ -19,4 +19,6 @@ SDL_Window *gWindow = NULL;
 //The window renderer
 SDL_Renderer *gRenderer = NULL;
 
+SDL_Surface *gIcon = NULL;
+
 #endif

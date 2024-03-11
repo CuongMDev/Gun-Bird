@@ -30,7 +30,7 @@ private:
     //The X and Y offsets
     int mPosX[IMAGE_COUNT], mPosY[IMAGE_COUNT];
     //use to create animation
-    int mCurWidth;
+    int loadGameOverState;
     //increase size of image
     int addWidth[IMAGE_COUNT], addHeight[IMAGE_COUNT];
 
@@ -42,7 +42,7 @@ public:
     ~GameOver();
 
     static bool gameIsOver();
-    static void onGameOver(bool value);
+    static void onGameOver();
 
     void init();
     void initPos();
@@ -71,14 +71,14 @@ bool GameOver::gameIsOver() {
     return isOver;
 }
 
-void GameOver::onGameOver(bool value) {
-    isOver = value;
+void GameOver::onGameOver() {
+    isOver = true;
 }
 
 void GameOver::init()
 {
     initPos();
-    mCurWidth = 0;
+    loadGameOverState = 0;
 }
 
 void GameOver::initPos() {
@@ -109,16 +109,16 @@ void GameOver::render()
 {
     SDL_Rect clip;
     clip.x = 0; clip.y = 0;
-    clip.w = mCurWidth, clip.h = mTexture[GAMEOVER].getHeight();
+    clip.w = loadGameOverState, clip.h = mTexture[GAMEOVER].getHeight();
 
     mTexture[GAMEOVER].render(mPosX[GAMEOVER], mPosY[GAMEOVER], &clip);
 
     //continue to load
-    if (mCurWidth + gameOverLoadSpeed <= mTexture[GAMEOVER].getWidth()) {
-        mCurWidth += gameOverLoadSpeed;
+    if (loadGameOverState + gameOverLoadSpeed <= mTexture[GAMEOVER].getWidth()) {
+        loadGameOverState += gameOverLoadSpeed;
     }
     else {
-        mCurWidth = mTexture[GAMEOVER].getWidth();
+        loadGameOverState = mTexture[GAMEOVER].getWidth();
 
         mTexture[HOME].render(mPosX[HOME], mPosY[HOME], NULL, 0, NULL, SDL_FLIP_NONE, addWidth[HOME], addHeight[HOME]);
         mTexture[RETRY].render(mPosX[RETRY], mPosY[RETRY], NULL, 0, NULL, SDL_FLIP_NONE, addWidth[RETRY], addHeight[RETRY]);
@@ -127,7 +127,7 @@ void GameOver::render()
 
 void GameOver::reset()
 {
-    mCurWidth = 0;
+    loadGameOverState = 0;
     isOver = false;
 }
 
@@ -141,10 +141,13 @@ BUTTON GameOver::handleEvent(SDL_Event *e)
         buttonCollided = RETRYBUTTON;
     }
 
-    if (e->type == SDL_MOUSEBUTTONDOWN) {
-        if (e->button.button == SDL_BUTTON_LEFT) {
-            // left mouse button pressed
-            return buttonCollided;
+    //finished loading game over image
+    if (loadGameOverState == mTexture[GAMEOVER].getWidth()) {
+        if (e->type == SDL_MOUSEBUTTONDOWN) {
+            if (e->button.button == SDL_BUTTON_LEFT) {
+                // left mouse button pressed
+                return buttonCollided;
+            }
         }
     }
 

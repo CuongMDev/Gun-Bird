@@ -2,6 +2,7 @@
 #define PIPE_H
 
 #include "../LTexture.h"
+#include "Ground.h"
 
 const Uint32 waitTimeBeforePlaying = 2000;
 
@@ -64,7 +65,7 @@ void Pipe::renderAll()
         pipeList.push_back(pipe);
 
         //reset created time
-        nextCreatedTime = SDL_GetTicks() + getRandomNumber(500, 1000);
+        nextCreatedTime = SDL_GetTicks() + getRandomNumber(500, 500);
     }
 
     //render all pipes

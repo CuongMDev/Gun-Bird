@@ -3,7 +3,7 @@
 
 #include "Bullets.h"
 #include "../CursorMouse.h"
-#include <math.h>
+#include <cmath>
 #include <list>
 
 const int gunPosX = 5;
@@ -57,7 +57,7 @@ void Guns::initGun()
 void Guns::loadGunIMG()
 {
     //image: https://midnitepixelated.itch.io/pixel-guns
-    mTexture.loadFromFile(gunImagePath + "gun3.png", true, 67, 76, 111);
+    mTexture.loadFromFile(gunImagePath + "gun0.png", true, 67, 76, 111);
 }
 
 void Guns::turnTowards(int mouseX, int mouseY)
