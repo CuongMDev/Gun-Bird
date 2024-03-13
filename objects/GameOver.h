@@ -5,8 +5,8 @@
 
 const int gameOverLoadSpeed = 10;
 const int disBetweenHomeAndRetry = 20;
-const int addWidthButton = 20;
-const int addHeightButton = 20;
+const int addWidthButton = 7;
+const int addHeightButton = 3;
 
 enum BUTTON
 {

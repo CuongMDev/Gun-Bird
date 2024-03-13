@@ -9,13 +9,11 @@
 const int gunPosX = 5;
 const int gunPosY = groundPosY + 10;
 
-class Guns
+class Guns : private Object
 {
 private:
-    LTexture mTexture;
+    ObjectsList bulletsList;
 
-    //The X and Y offsets
-    int mPosX, mPosY;
     //The angle
     double mAngle;
 
@@ -24,14 +22,16 @@ private:
     void updateAngle();
     void shoot();
 
-protected:
-    void initGun();
-    void renderGun();
-    void handleGunEvent(SDL_Event *e);
-    void setGunPosAndAngle(int x, int y);
+public:
 
     Guns();
-    ~Guns();
+
+    ObjectsList &getBulletList();
+
+    void init();
+    bool render() override;
+    void handleEvent(SDL_Event *e);
+    void setPosAndAngle(int x, int y);
 };
 
 Guns::Guns()
@@ -41,23 +41,21 @@ Guns::Guns()
     mAngle = 0;
 }
 
-Guns::~Guns()
+ObjectsList &Guns::getBulletList()
 {
-    mTexture.free();
-    // for (int i = 0; i < 2; i++) {
-    //     mTexture[i].free();
-    // }
+    return bulletsList;
 }
 
-void Guns::initGun()
+void Guns::init()
 {
     loadGunIMG();
+    bulletsList.reset();
 }
 
 void Guns::loadGunIMG()
 {
     //image: https://midnitepixelated.itch.io/pixel-guns
-    mTexture.loadFromFile(gunImagePath + "gun0.png", true, 67, 76, 111);
+    mTexture->loadFromFile(gunImagePath + "gun0.png", true, 67, 76, 111);
 }
 
 void Guns::turnTowards(int mouseX, int mouseY)
@@ -79,12 +77,12 @@ void Guns::updateAngle()
 void Guns::shoot()
 {
     //recoil
-    cursorMouse->recoilMouse(bulletsList.size(), 5 * bulletsList.size());
-    //create bullet
-    Bullets::add(mPosX, mPosY, mAngle);
+    cursorMouse->recoilMouse(bulletsList.count (), 5 * bulletsList.count());
+    //add bullet
+    bulletsList.add(new Bullets(mPosX, mPosY, mAngle));
 }
 
-void Guns::handleGunEvent(SDL_Event *e)
+void Guns::handleEvent(SDL_Event *e)
 {
     if (e->type == SDL_MOUSEMOTION) {
         updateAngle();
@@ -97,15 +95,17 @@ void Guns::handleGunEvent(SDL_Event *e)
     }
 }
 
-void Guns::renderGun()
+bool Guns::render()
 {
-    Bullets::renderAll();
+    bulletsList.renderAll();
 
     SDL_Point center{ pivotX, pivotY };
-    mTexture.render(mPosX, mPosY, NULL, mAngle, &center);
+    mTexture->render(mPosX, mPosY, NULL, mAngle, &center);
+
+    return true;
 }
 
-void Guns::setGunPosAndAngle(int x, int y)
+void Guns::setPosAndAngle(int x, int y)
 {
     mPosX = x;
     mPosY = y;

@@ -2,9 +2,7 @@
 #define CHARACTER_H
 
 #include "Ground.h"
-
-const int mainBirdPosX = 200;
-const int mainBirdPosY = SCREEN_HEIGHT / 2;
+#include "ObjectsList.h"
 
 enum CHARACTER_TYPE
 {
@@ -20,21 +18,19 @@ enum DIRECTION
     RIGHT
 };
 
-class Character
+class Character : public Object
 {
 private:
-    LTexture mTexture[4];
+    LTexture sTexture[4];
 
     CHARACTER_TYPE mCharacterType;
     DIRECTION direction;
 
-    int initImgChangeVelWhenFlying;
-
+    int initImgChangeVelWhenAir;
+    int imgCount;
     int curTimeRender;
     int curIMGRender;
     int imgChangeVel;
-    //The X and Y offsets
-    int mPosX, mPosY;
     //The angle
     double mAngle;
     //The velocity
@@ -49,6 +45,7 @@ private:
 
     void loadIMG();
     void setPosToBorderPos();
+    void increaseTimeRender();
 
     bool checkOutBorder();
     bool checkGroundCollision();
@@ -58,24 +55,18 @@ private:
     bool playingRender();
     bool dyingRender();
 
-public:
+protected:
     Character(int x, int y, CHARACTER_TYPE character);
     ~Character();
 
-    void init(int x, int y);
+    void initCharacter(int x, int y);
 
     //use when have gravitation
     void decreaseVelAndAngle();
 
     void onDied();
     bool isDied() const;
-    bool render();
-
-    //dimensions
-    int getPosX() const;
-    int getPosY() const;
-    int getWidth();
-    int getHeight();
+    bool renderCharacter();
 
     void setVelX(int value);
     void setVelY(int value);
@@ -85,23 +76,25 @@ public:
     void addVelAngle(double value);
 };
 
-Character::Character(int x, int y, CHARACTER_TYPE character)
+Character::Character(int x, int y, CHARACTER_TYPE character) : Object(false)
 {
     mCharacterType = character;
 
-    init(x, y);
+    initCharacter(x, y);
     loadIMG();
 }
 
 Character::~Character()
 {
-    for (int i = 0; i < 2; i++) {
-        mTexture[i].free();
+    for (int i = 0; i < imgCount; i++) {
+        sTexture[i].free();
     }
 }
 
-void Character::init(int x, int y)
+void Character::initCharacter(int x, int y)
 {
+    mTexture = &sTexture[0];
+
     died = false;
 
     curTimeRender = 0;
@@ -156,23 +149,25 @@ void Character::loadIMG()
     //image: https://flappybird.io/,
     switch (mCharacterType) {
         case MAIN_BIRD:
-            mTexture[0].loadFromFile(imagePath + "mainBird0.png", true, 124, 197, 205);
-            mTexture[1].loadFromFile(imagePath + "mainBird1.png", true, 124, 197, 205);
-            mTexture[2].loadFromFile(imagePath + "mainBird2.png", true, 124, 197, 205);
-            mTexture[3] = mTexture[1];
+            sTexture[0].loadFromFile(imagePath + "mainBird0.png", true, 124, 197, 205);
+            sTexture[1].loadFromFile(imagePath + "mainBird1.png", true, 124, 197, 205);
+            sTexture[2].loadFromFile(imagePath + "mainBird2.png", true, 124, 197, 205);
+            sTexture[3] = sTexture[1];
+            imgCount = 4;
 
             direction = RIGHT;
-            initImgChangeVelWhenFlying = 2;
+            initImgChangeVelWhenAir = 2;
 
             break;
         case BAT:
-            mTexture[0].loadFromFile(imagePath + "bat0.png", true, 34,177,76);
-            mTexture[1].loadFromFile(imagePath + "bat1.png", true, 34,177,76);
-            mTexture[2].loadFromFile(imagePath + "bat2.png", true, 34,177,76);
-            mTexture[3] = mTexture[1];
+            sTexture[0].loadFromFile(imagePath + "bat0.png", true, 34,177,76);
+            sTexture[1].loadFromFile(imagePath + "bat1.png", true, 34,177,76);
+            sTexture[2].loadFromFile(imagePath + "bat2.png", true, 34,177,76);
+            sTexture[3] = sTexture[1];
+            imgCount = 4;
 
             direction = LEFT;
-            initImgChangeVelWhenFlying = 6;
+            initImgChangeVelWhenAir = 6;
 
             break;
         default:
@@ -185,12 +180,26 @@ void Character::setPosToBorderPos()
     if (mPosX < 0) {
         mPosX = 0;
     }
-    if (mPosX + mTexture[curIMGRender].getWidth() > SCREEN_WIDTH) {
-        mPosX = SCREEN_WIDTH - mTexture[curIMGRender].getWidth();
+    if (mPosX + getWidth() > SCREEN_WIDTH) {
+        mPosX = SCREEN_WIDTH - getWidth();
     }
-    if (mPosY + mTexture[curIMGRender].getHeight() < 0) {
-        mPosY = -mTexture[curIMGRender].getHeight();
+    if (mPosY + getHeight() < 0) {
+        mPosY = -getHeight();
     }
+}
+
+void Character::increaseTimeRender()
+{
+    curTimeRender++;
+    if (curTimeRender >= imgChangeVel) {
+        curTimeRender = 0;
+        curIMGRender++;
+        if (curIMGRender >= imgCount) {
+            curIMGRender = 0;
+        }
+    }
+
+     mTexture = &sTexture[curIMGRender];
 }
 
 bool Character::playingRender()
@@ -204,20 +213,11 @@ bool Character::playingRender()
         imgChangeVel = 5;
     }
     else {
-        imgChangeVel = initImgChangeVelWhenFlying;
+        imgChangeVel = initImgChangeVelWhenAir;
     }
 
-    mTexture[curIMGRender].render(mPosX, mPosY, NULL, mAngle);
-
-    //increase time render
-    curTimeRender++;
-    if (curTimeRender >= imgChangeVel) {
-        curTimeRender = 0;
-        curIMGRender++;
-        if (curIMGRender == 4) {
-            curIMGRender = 0;
-        }
-    }
+    mTexture->render(mPosX, mPosY, NULL, mAngle);
+    increaseTimeRender();
 
     return moved;
 }
@@ -233,18 +233,18 @@ bool Character::dyingRender()
     }
 
     bool moved = move();
-    mTexture[curIMGRender].render(mPosX, mPosY, NULL, mAngle);
+    mTexture->render(mPosX, mPosY, NULL, mAngle);
     return moved;
 }
 
 bool Character::isStayingOnGround()
 {
-    return (mPosY + mTexture[curIMGRender].getHeight() == groundPosY + 10);
+    return (mPosY + getHeight() == groundPosY + 10);
 }
 
 bool Character::checkGroundCollision()
 {
-    if (mPosY + mTexture[curIMGRender].getHeight() >= groundPosY + 10) {
+    if (mPosY + getHeight() >= groundPosY + 10) {
         return true;
     }
     return false;
@@ -255,10 +255,10 @@ bool Character::checkOutBorder()
     if (mPosX < 0) {
         return true;
     }
-    if (mPosX + mTexture[curIMGRender].getWidth() > SCREEN_WIDTH) {
+    if (mPosX + getWidth() > SCREEN_WIDTH) {
         return true;
     }
-    if (mPosY + mTexture[curIMGRender].getHeight() < 0) {
+    if (mPosY + getHeight() < 0) {
         return true;
     }
     return false;
@@ -298,7 +298,7 @@ bool Character::move()
         //not staying on the ground
         if (!isStayingOnGround()) {
             //set pos to ground pos
-            mPosY = groundPosY + 10 - mTexture[curIMGRender].getHeight();
+            mPosY = groundPosY + 10 - getHeight();
             moved = true;
         }
         else {
@@ -329,8 +329,7 @@ bool Character::isDied() const
     return died;
 }
 
-bool Character::render()
-{
+bool Character::renderCharacter() {
     bool rendered = true;
     if (!died) {
         playingRender();
@@ -340,26 +339,6 @@ bool Character::render()
     }
 
     return rendered;
-}
-
-int Character::getWidth()
-{
-    return mTexture[curIMGRender].getWidth();
-}
-
-int Character::getHeight()
-{
-    return mTexture[curIMGRender].getHeight();
-}
-
-int Character::getPosX() const
-{
-    return mPosX;
-}
-
-int Character::getPosY() const
-{
-    return mPosY;
 }
 
 void Character::setVelX(int value)
@@ -391,5 +370,4 @@ void Character::addVelAngle(double value)
 {
     mVelAngle += value;
 }
-
 #endif

@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "objects.h"
+#include "allObjects.h"
 #include "mainData.h"
 #include "CursorMouse.h"
 
@@ -11,15 +11,19 @@ private:
     Background *background;
     Ground *ground;
     MainBird *mainBird;
-    Bat *bat;
+    ObjectsList *batList;
     GameOver *gameOver;
+    ObjectsList *pipeList;
 
-    //true if handled when game over;
-    bool gameOverHandled;
-
-    void init();
     void handleGameOver();
     void resetGame();
+
+    //check colision
+    void checkColisionObjects();
+    void checkColisionBirdAndEnemyBullet();
+    void checkColisionBirdAndPipe();
+    void checkColisionPipeAndPlayerBullet();
+    void checkColisionObjectsBatAndPipe();
 
 public:
     Game();
@@ -31,13 +35,30 @@ public:
     void render();
 };
 
+Game::Game()
+{
+    background = new Background();
+    ground = new Ground(groundPosX, groundPosY);
+    mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
+    batList = new ObjectsList();
+    gameOver = new GameOver();
+    pipeList = new ObjectsList();
+    cursorMouse = new CursorMouse();
+    resetGame();
+}
+
+Game::~Game()
+{
+    delete background;
+    delete ground;
+    delete mainBird;
+    delete batList;
+    delete gameOver;
+    delete pipeList;
+}
+
 void Game::handleGameOver()
 {
-    if (gameOverHandled) {
-        return;
-    }
-    gameOverHandled = true;
-
     //stop scene move
     gVelocityYScene = 0;
 
@@ -46,8 +67,8 @@ void Game::handleGameOver()
 
 void Game::resetGame()
 {
-    Pipe::reset();
-    Bullets::reset();
+    pipeList->reset();
+    batList->reset();
 
     gVelocityYScene = gInitVelocityYScene;
 
@@ -55,22 +76,7 @@ void Game::resetGame()
     mainBird->init(mainBirdPosX, mainBirdPosY);
 
     cursorMouse->setCursor(AIM_CURSOR);
-    gameOverHandled = false;
 }
-
-Game::Game()
-{
-    background = new Background();
-    ground = new Ground(groundPosX, groundPosY);
-    mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
-    bat = new Bat(100, 100);
-    gameOver = new GameOver();
-    cursorMouse = new CursorMouse();
-    resetGame();
-}
-
-Game::~Game()
-= default;
 
 void Game::handleEvent(SDL_Event *e)
 {
@@ -103,18 +109,55 @@ void Game::handleGameOverButtonClicked(BUTTON buttonClicked)
 
 void Game::render()
 {
-    if (GameOver::gameIsOver()) {
-        handleGameOver();
-    }
+    checkColisionObjects();
 
     background->render();
     ground->render();
-    bat->render();
-    Pipe::renderAll();
-
-    //bird is in ground
+    Bat::renderAll(batList);
+    Pipe::renderAll(pipeList);
     if (!mainBird->render()) {
         gameOver->render();
     }
 }
+
+void Game::checkColisionObjects()
+{
+    if (GameOver::gameIsOver()) {
+        return;
+    }
+    //checkColisionBirdAndEnemyBullet();
+    checkColisionBirdAndPipe();
+    checkColisionPipeAndPlayerBullet();
+    //checkColisionObjectsBatAndPipe();
+}
+
+void Game::checkColisionBirdAndEnemyBullet()
+{
+    Object object;
+//    if (mainBird->render())
+}
+
+void Game::checkColisionBirdAndPipe()
+{
+    std::_List_iterator<Object *> object;
+    if (pipeList->getCollisionObject(*mainBird, object)) {
+        GameOver::onGameOver();
+        handleGameOver();
+    }
+}
+
+void Game::checkColisionPipeAndPlayerBullet()
+{
+    std::_List_iterator<Object *> objectA, objectB;
+    auto bulletList = mainBird->getBulletList();
+    if (pipeList->getCollisionObjects(mainBird->getBulletList(), objectA, objectB)) {
+        bulletList.deleteObject(objectB);
+    }
+}
+
+void Game::checkColisionObjectsBatAndPipe()
+{
+
+}
+
 #endif

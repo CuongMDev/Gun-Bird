@@ -4,21 +4,14 @@
 #include "../LTexture.h"
 #include "../utils.h"
 #include "Pipe.h"
+#include "ObjectsList.h"
 
 const int pivotX = 20;
 const int pivotY = 10;
 
-class Bullets;
-//list of bullets
-std::list<Bullets *> bulletsList;
-
-class Bullets
+class Bullets : public Object
 {
 private:
-    LTexture mTexture;
-
-    //The X and Y offsets
-    int mPosX, mPosY;
     //The velocity
     int mVelX, mVelY;
     //Speed;
@@ -27,7 +20,6 @@ private:
     double mAngle;
 
     bool checkOutTheBorder();
-    bool checkPipeCollision();
     bool move();
 
     void loadIMG();
@@ -40,11 +32,7 @@ public:
     Bullets(int x, int y, double angle);
     ~Bullets();
 
-    static void add(int x, int y, double Angle);
-    static void reset();
-    static void renderAll();
-
-    bool render();
+    bool render() override;
 };
 
 Bullets::Bullets(int x, int y, double angle)
@@ -54,40 +42,7 @@ Bullets::Bullets(int x, int y, double angle)
 }
 
 Bullets::~Bullets()
-{
-    mTexture.free();
-    // for (int i = 0; i < 2; i++) {
-    //     mTexture[i].free();
-    // }
-}
-
-void Bullets::add(int x, int y, double angle)
-{
-    //create bullet
-    Bullets *bullet = new Bullets(x, y, angle);
-    bulletsList.push_back(bullet);
-}
-
-void Bullets::reset()
-{
-    //clear bullets
-    for (auto bullet : bulletsList) {
-        delete bullet;
-    }
-    bulletsList.clear();
-}
-
-void Bullets::renderAll()
-{
-    //check collision before render
-    for (auto bullet = bulletsList.begin(); bullet != bulletsList.end();) {
-        if (!(*bullet)->render()) {
-            delete (*bullet);
-            bullet = bulletsList.erase(bullet);
-        }
-        else bullet++;
-    }
-}
+=default;
 
 void Bullets::init(int x, int y, double angle)
 {
@@ -103,24 +58,11 @@ void Bullets::init(int x, int y, double angle)
 
 bool Bullets::checkOutTheBorder()
 {
-    if (mPosX > SCREEN_WIDTH || mPosX + mTexture.getWidth() < 0) {
+    if (mPosX > SCREEN_WIDTH || mPosX + getWidth() < 0) {
         return true;
     }
-    if (mPosY > SCREEN_HEIGHT || mPosY + mTexture.getHeight() < 0) {
+    if (mPosY > SCREEN_HEIGHT || mPosY + getHeight() < 0) {
         return true;
-    }
-
-    return false;
-}
-
-bool Bullets::checkPipeCollision()
-{
-    for (auto pipe : pipeList) {
-        if (checkCollision(mPosX, mPosY, mTexture.getWidth(), mTexture.getHeight(),
-            pipe->getPosX(), pipe->getPosY(), pipe->getWidth(), pipe->getHeight())) {
-
-            return true;
-        }
     }
 
     return false;
@@ -129,7 +71,7 @@ bool Bullets::checkPipeCollision()
 void Bullets::loadIMG()
 {
     //image: https://midnitepixelated.itch.io/pixel-Bullets
-    mTexture.loadFromFile(imagePath + "bullet0.png", true, 0, 0, 0);
+    mTexture->loadFromFile(imagePath + "bullet0.png", true, 0, 0, 0);
 }
 
 inline void Bullets::calculateVelocity()
@@ -156,14 +98,14 @@ bool Bullets::move()
     mPosX += mVelX;
     mPosY += mVelY;
 
-    if (checkOutTheBorder() || checkPipeCollision()) return false;
+    if (checkOutTheBorder()) return false;
     return true;
 }
 
 bool Bullets::render()
 {
     if (move()) {
-        mTexture.render(mPosX, mPosY, NULL, mAngle);
+        mTexture->render(mPosX, mPosY, NULL, mAngle);
         return true;
     }
 
