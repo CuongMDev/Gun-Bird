@@ -1,10 +1,10 @@
 #ifndef BULLETS_H
 #define BULLETS_H
 
-#include "../LTexture.h"
-#include "../utils.h"
-#include "Pipe.h"
-#include "ObjectsList.h"
+#include "../Other/LTexture.h"
+#include "../Other/utils.h"
+#include "../Scene/Pipe.h"
+#include "../Other/ObjectsList.h"
 
 const int pivotX = 20;
 const int pivotY = 10;
@@ -71,7 +71,7 @@ bool Bullets::checkOutTheBorder()
 void Bullets::loadIMG()
 {
     //image: https://midnitepixelated.itch.io/pixel-Bullets
-    mTexture->loadFromFile(imagePath + "bullet0.png", true, 0, 0, 0);
+    mTexture->loadFromFile(bulletImagePath + "bullet0.png", true, 0, 0, 0);
 }
 
 inline void Bullets::calculateVelocity()

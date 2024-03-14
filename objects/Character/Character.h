@@ -1,8 +1,8 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
-#include "Ground.h"
-#include "ObjectsList.h"
+#include "../Scene/Ground.h"
+#include "../Other/ObjectsList.h"
 
 enum CHARACTER_TYPE
 {
@@ -74,6 +74,8 @@ protected:
     void addVelX(int value);
     void addVelY(int value);
     void addVelAngle(double value);
+
+public:
 };
 
 Character::Character(int x, int y, CHARACTER_TYPE character) : Object(false)
@@ -133,8 +135,7 @@ void Character::onDied()
     died = true;
 
     //continue moving
-    mVelX = gInitVelocityYScene - gVelocityYScene;
-    mVelY = 15;
+    mVelX += gInitVelocityYScene - gVelocityYScene;
 
     if (direction == RIGHT) {
         limitAngleUpper = 90;
@@ -146,12 +147,12 @@ void Character::onDied()
 
 void Character::loadIMG()
 {
-    //image: https://flappybird.io/,
     switch (mCharacterType) {
+        //image: https://flappybird.io/
         case MAIN_BIRD:
-            sTexture[0].loadFromFile(imagePath + "mainBird0.png", true, 124, 197, 205);
-            sTexture[1].loadFromFile(imagePath + "mainBird1.png", true, 124, 197, 205);
-            sTexture[2].loadFromFile(imagePath + "mainBird2.png", true, 124, 197, 205);
+            sTexture[0].loadFromFile(mainBirdImagePath + "mainBird0.png", true, 124, 197, 205);
+            sTexture[1].loadFromFile(mainBirdImagePath + "mainBird1.png", true, 124, 197, 205);
+            sTexture[2].loadFromFile(mainBirdImagePath + "mainBird2.png", true, 124, 197, 205);
             sTexture[3] = sTexture[1];
             imgCount = 4;
 
@@ -159,10 +160,11 @@ void Character::loadIMG()
             initImgChangeVelWhenAir = 2;
 
             break;
+        //image: https://opengameart.org/content/bat-rework
         case BAT:
-            sTexture[0].loadFromFile(imagePath + "bat0.png", true, 34,177,76);
-            sTexture[1].loadFromFile(imagePath + "bat1.png", true, 34,177,76);
-            sTexture[2].loadFromFile(imagePath + "bat2.png", true, 34,177,76);
+            sTexture[0].loadFromFile(batImagePath + "bat0.png", true, 34,177,76);
+            sTexture[1].loadFromFile(batImagePath + "bat1.png", true, 34,177,76);
+            sTexture[2].loadFromFile(batImagePath + "bat2.png", true, 34,177,76);
             sTexture[3] = sTexture[1];
             imgCount = 4;
 
@@ -227,8 +229,8 @@ bool Character::dyingRender()
     //start falling
     decreaseVelAndAngle();
 
-    if (mVelX > gVelocityYScene && isStayingOnGround()) {
-        //Velocity X decreases due to friction
+    if (mVelX > -gVelocityYScene && isStayingOnGround()) {
+        //Velocity X decreases until equal Scene Velocity
         mVelX--;
     }
 

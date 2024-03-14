@@ -2,7 +2,7 @@
 #define GUNS_H
 
 #include "Bullets.h"
-#include "../CursorMouse.h"
+#include "../CursorMouse/CursorMouse.h"
 #include <cmath>
 #include <list>
 

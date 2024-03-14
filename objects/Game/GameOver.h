@@ -1,12 +1,11 @@
 #ifndef GAMEOVER_H
 #define GAMEOVER_H
 
-#include "../LTexture.h"
+#include "../Other/LTexture.h"
 
 const int gameOverLoadSpeed = 10;
 const int disBetweenHomeAndRetry = 20;
-const int addWidthButton = 7;
-const int addHeightButton = 3;
+const int addScaleButton = 10;
 
 enum BUTTON
 {
@@ -32,7 +31,7 @@ private:
     //use to create animation
     int loadGameOverState;
     //increase size of image
-    int addWidth[IMAGE_COUNT], addHeight[IMAGE_COUNT];
+    int addScale[IMAGE_COUNT];
 
     static bool isOver;
     void loadIMG();
@@ -92,17 +91,16 @@ void GameOver::initPos() {
     mPosY[RETRY] = SCREEN_HEIGHT / 2 + mTexture[RETRY].getHeight() / 3;
 
     for (int i = 0; i < IMAGE_COUNT; i++) {
-        addHeight[i] = 0;
-        addWidth[i] = 0;
+        addScale[i] = 0;
     }
 }
 
 void GameOver::loadIMG()
 {
     //image: https://www.dreamstime.com/pixel-game-over-text-image-bit-assets-cross-stitch-pattern-t-shirt-design-vector-illustration-image222135423
-    mTexture[GAMEOVER].loadFromFile(imagePath + "gameover.png");
-    mTexture[HOME].loadFromFile(imagePath + "home.png");
-    mTexture[RETRY].loadFromFile(imagePath + "retry.png");
+    mTexture[GAMEOVER].loadFromFile(gameOverImagePath + "gameover.png");
+    mTexture[HOME].loadFromFile(gameOverImagePath + "home.png");
+    mTexture[RETRY].loadFromFile(gameOverImagePath + "retry.png");
 }
 
 void GameOver::render()
@@ -120,8 +118,8 @@ void GameOver::render()
     else {
         loadGameOverState = mTexture[GAMEOVER].getWidth();
 
-        mTexture[HOME].render(mPosX[HOME], mPosY[HOME], NULL, 0, NULL, SDL_FLIP_NONE, addWidth[HOME], addHeight[HOME]);
-        mTexture[RETRY].render(mPosX[RETRY], mPosY[RETRY], NULL, 0, NULL, SDL_FLIP_NONE, addWidth[RETRY], addHeight[RETRY]);
+        mTexture[HOME].render(mPosX[HOME], mPosY[HOME], NULL, 0, NULL, SDL_FLIP_NONE, addScale[HOME]);
+        mTexture[RETRY].render(mPosX[RETRY], mPosY[RETRY], NULL, 0, NULL, SDL_FLIP_NONE, addScale[RETRY]);
     }
 }
 
@@ -160,15 +158,13 @@ bool GameOver::checkCollisionButton(BUTTON button)
     SDL_GetMouseState(&mouseX, &mouseY);
 
     if (checkCollision(mouseX, mouseY, 0, 0, mPosX[button], mPosY[button], mTexture[button].getWidth(), mTexture[button].getHeight())) {
-        addWidth[button] = addWidthButton;
-        addHeight[button] = addHeightButton;
+        addScale[button] = addScaleButton;
 
         return true;
     }
     else {
         //reset;
-        addWidth[button] = 0;
-        addHeight[button] = 0;
+        addScale[button] = 0;
 
         return false;
     }

@@ -1,8 +1,8 @@
 #ifndef CURSORMOUSE_H
 #define CURSORMOUSE_H
 
-#include "mainData.h"
-#include "utils.h"
+#include "../../Main/mainData.h"
+#include "../Other/utils.h"
 
 //Load image surface at specified path
 SDL_Surface *loadSurfaceFromFile(const std::string &path, const bool &removeBKG = false, const Uint8 &r = 0, const Uint8 &g = 0, const Uint8 &b = 0);
@@ -69,8 +69,8 @@ void CursorMouse::loadIMG()
 {
     //image: https://www.pngegg.com/en/,
     https://www.freepik.com/free-vector/funny-cursor-pack_1538099.htm#query=game%20cursor&position=6&from_view=keyword&track=ais&uuid=029b731f-41ca-4740-9cbf-0f380722a7a8
-    mCursor[DEFAULT_CURSOR] = loadCursorFromFile(imagePath + "defaultcursor.png");
-    mCursor[AIM_CURSOR] = loadCursorFromFile(imagePath + "aim0.png");
+    mCursor[DEFAULT_CURSOR] = loadCursorFromFile(cursorMouseImagePath + "defaultcursor.png");
+    mCursor[AIM_CURSOR] = loadCursorFromFile(cursorMouseImagePath + "aim0.png");
 }
 
 void CursorMouse::setCursor(CURSOR_TYPE cursor)

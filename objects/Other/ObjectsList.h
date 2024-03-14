@@ -7,6 +7,8 @@
 class ObjectsList
 {
 private:
+#define listIter std::list<Object*>::iterator
+
     std::list<Object*> objectList;
 
 public:
@@ -19,9 +21,9 @@ public:
     void reset();
     void renderAll();
 
-    bool getCollisionObjects(ObjectsList& objectsList, std::list<Object*>::iterator &objectA, std::list<Object*>::iterator &objectB);
-    bool getCollisionObject(const Object& objectB, std::list<Object*>::iterator &object);
-    void deleteObject(const std::list<Object*>::iterator &object);
+    bool getCollisionObjects(ObjectsList& objectsList, listIter &objectA, listIter &objectB, bool continueToFind = false);
+    bool getCollisionObject(const Object& objectB, listIter &object, bool continueToFind = false);
+    void deleteObject(const listIter &object);
 };
 
 ObjectsList::ObjectsList()
@@ -62,9 +64,12 @@ void ObjectsList::renderAll()
     }
 }
 
-bool ObjectsList::getCollisionObject(const Object &objectB, std::list<Object*>::iterator &object)
+bool ObjectsList::getCollisionObject(const Object &objectB, listIter &object, bool continueToFind)
 {
-    for (auto obj = objectList.begin(); obj != objectList.end(); obj++) {
+    listIter obj;
+    if (continueToFind) obj = object;
+    else obj = objectList.begin();
+    for (; obj != objectList.end(); obj++) {
         if ((*obj)->checkCollisionObject(objectB)) {
             object = obj;
             return true;
@@ -74,21 +79,30 @@ bool ObjectsList::getCollisionObject(const Object &objectB, std::list<Object*>::
     return false;
 }
 
-bool ObjectsList::getCollisionObjects(ObjectsList &objectsListB, std::list<Object*>::iterator &objectA, std::list<Object*>::iterator &objectB)
+bool ObjectsList::getCollisionObjects(ObjectsList &objectsListB, listIter &objectA, listIter &objectB, bool continueToFind)
 {
-    for (auto objB = objectsListB.objectList.begin(); objB != objectsListB.objectList.end(); objB++) {
-        std::list<Object*>::iterator objA;
-        if (this->getCollisionObject(**objB, objA)) {
+    listIter objA, objB;
+    if (continueToFind) {
+        objA = objectA;
+        objB = objectB;
+    }
+    else {
+        objA = objectList.begin();
+        objB = objectsListB.objectList.begin();
+    }
+    for (; objB != objectsListB.objectList.end(); objB++) {
+        if (this->getCollisionObject(**objB, objA, continueToFind)) {
             objectA = objA;
             objectB = objB;
             return true;
         }
+        continueToFind = false;
     }
 
     return false;
 }
 
-void ObjectsList::deleteObject(const std::list<Object *>::iterator &object)
+void ObjectsList::deleteObject(const listIter &object)
 {
     objectList.erase(object);
 }

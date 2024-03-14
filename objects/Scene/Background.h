@@ -1,7 +1,7 @@
 #ifndef BACKGROUND_H
 #define BACKGROUND_H
 
-#include "Object.h"
+#include "../Other/Object.h"
 
 const int backgroundPosX = 0;
 const int backgroundPosY = 0;
@@ -40,7 +40,7 @@ void Background::init()
 void Background::loadIMG()
 {
     //image: https://www.freepik.com/free-vector/nature-roadside-background-scene_40169781.htm#query=pixel%20sky%20background&position=2&from_view=keyword&track=ais&uuid=139c01bd-968c-4c3e-9f4f-1612c7cd6e5f
-    mTexture->loadFromFile(imagePath + "background.png");
+    mTexture->loadFromFile(sceneImagePath + "background.png");
 }
 
 bool Background::render()

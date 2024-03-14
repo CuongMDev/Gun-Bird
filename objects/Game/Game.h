@@ -1,9 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "allObjects.h"
-#include "mainData.h"
-#include "CursorMouse.h"
+#include "../AllObjects.h"
+#include "../CursorMouse/CursorMouse.h"
 
 class Game
 {
@@ -68,6 +67,7 @@ void Game::handleGameOver()
 void Game::resetGame()
 {
     pipeList->reset();
+    Pipe::resetTime();
     batList->reset();
 
     gVelocityYScene = gInitVelocityYScene;
@@ -113,8 +113,8 @@ void Game::render()
 
     background->render();
     ground->render();
-    Bat::renderAll(batList);
     Pipe::renderAll(pipeList);
+    Bat::renderAll(batList);
     if (!mainBird->render()) {
         gameOver->render();
     }
@@ -125,7 +125,7 @@ void Game::checkColisionObjects()
     if (GameOver::gameIsOver()) {
         return;
     }
-    //checkColisionBirdAndEnemyBullet();
+    checkColisionBirdAndEnemyBullet();
     checkColisionBirdAndPipe();
     checkColisionPipeAndPlayerBullet();
     //checkColisionObjectsBatAndPipe();
@@ -133,8 +133,16 @@ void Game::checkColisionObjects()
 
 void Game::checkColisionBirdAndEnemyBullet()
 {
-    Object object;
-//    if (mainBird->render())
+    std::_List_iterator<Object *> objectA, objectB;
+    auto &bulletList = mainBird->getBulletList();
+
+    //find until cant find
+    while (batList->getCollisionObjects(bulletList, objectA, objectB)) {
+        bulletList.deleteObject(objectB);
+
+        Bat *bat = dynamic_cast<Bat*>(*objectA);
+        bat->decreaseHealth();
+    }
 }
 
 void Game::checkColisionBirdAndPipe()
@@ -149,8 +157,8 @@ void Game::checkColisionBirdAndPipe()
 void Game::checkColisionPipeAndPlayerBullet()
 {
     std::_List_iterator<Object *> objectA, objectB;
-    auto bulletList = mainBird->getBulletList();
-    if (pipeList->getCollisionObjects(mainBird->getBulletList(), objectA, objectB)) {
+    auto &bulletList = mainBird->getBulletList();
+    if (pipeList->getCollisionObjects(bulletList, objectA, objectB)) {
         bulletList.deleteObject(objectB);
     }
 }

@@ -1,19 +1,35 @@
 #ifndef MAIN_FUNCTIONS_H
 #define MAIN_FUNCTIONS_H
 
-#include "CursorMouse.h"
+#include "../objects/CursorMouse/CursorMouse.h"
 #include <ctime>
 #include <list>
+#include "../objects/Other/Font.h"
+
+bool init();
 
 //Starts up SDL and creates window
-bool init();
+bool initWindow();
 
 bool loadIcon();
 
 //Frees media and shuts down SDL
 void close();
 
+//-------------------------------------------
+
 bool init()
+{
+    bool success = initWindow();
+    loadFont();
+
+    //take random over time
+    srand(time(0));
+
+    return success;
+}
+
+bool initWindow()
 {
     //Initialization flag
     bool success = true;
@@ -62,15 +78,12 @@ bool init()
         }
     }
 
-    //take random over time
-    srand(time(0));
-
     return success;
 }
 
 bool loadIcon()
 {
-    gIcon = loadSurfaceFromFile(imagePath + "/icon.png");
+    gIcon = loadSurfaceFromFile(iconImagePath + "/icon.png");
     if (gIcon == NULL) {
         return false;
     }
@@ -81,6 +94,11 @@ bool loadIcon()
 
 void close()
 {
+    // Clean up resources
+    for (const auto& pair : firaFonts) {
+        TTF_CloseFont(pair.second);
+    }
+
     //Destroy window	
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);

@@ -1,7 +1,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "../LTexture.h"
+#include "LTexture.h"
 
 class Object
 {

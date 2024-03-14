@@ -1,8 +1,9 @@
 #ifndef LTEXTURE_H
 #define LTEXTURE_H
 
-#include "mainData.h"
-#include "CursorMouse.h"
+#include <SDL2/SDL_ttf.h>
+#include "../../Main/mainData.h"
+#include "../CursorMouse/CursorMouse.h"
 
 //lazyfoo https://lazyfoo.net/tutorials/SDL/
 
@@ -24,7 +25,7 @@ public:
 
 #if defined(SDL_TTF_MAJOR_VERSION)
     //Creates image from font string
-    bool loadFromRenderedText(std::string textureText, SDL_Color textColor);
+    bool loadFromRenderedText(std::string textureText, TTF_Font* font, SDL_Color textColor);
 #endif
 
     //Deallocates texture
@@ -40,7 +41,7 @@ public:
     void setAlpha(Uint8 alpha);
 
     //Renders texture at given point
-    void render(int x, int y, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE, int addWidth = 0, int addHeight = 0);
+    void render(int x, int y, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE, int addScale = 0);
 
     //Gets image dimensions
     int getWidth();
@@ -96,13 +97,13 @@ bool LTexture::loadFromFile(const std::string &path,  const bool &removeBKG, con
 }
 
 #if defined(SDL_TTF_MAJOR_VERSION)
-bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor)
+bool LTexture::loadFromRenderedText(std::string textureText, TTF_Font* font, SDL_Color textColor)
 {
     //Get rid of preexisting texture
     free();
 
     //Render text surface
-    SDL_Surface *textSurface = TTF_RenderText_Solid(gFont, textureText.c_str(), textColor);
+    SDL_Surface *textSurface = TTF_RenderText_Solid(font, textureText.c_str(), textColor);
     if (textSurface != NULL)
     {
         //Create texture from surface pixels
@@ -161,8 +162,11 @@ void LTexture::setAlpha(Uint8 alpha)
     SDL_SetTextureAlphaMod(mTexture, alpha);
 }
 
-void LTexture::render(int x, int y, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip, int addWidth, int addHeight)
+void LTexture::render(int x, int y, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip, int addScale)
 {
+    //calculate add width and height
+    int addWidth = mWidth * addScale / 100;
+    int addHeight = mHeight * addScale / 100;
     //Set rendering space and render to screen
     SDL_Rect renderQuad = { x - addWidth / 2, y - addHeight / 2, mWidth + addWidth, mHeight + addHeight };
 

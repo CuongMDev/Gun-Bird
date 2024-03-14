@@ -1,5 +1,5 @@
-#include "mainFunctions.h"
-#include "Game.h"
+#include "Main/mainFunctions.h"
+#include "objects/Game/Game.h"
 
 int main(int argc, char *args[])
 {

@@ -1,9 +1,9 @@
 #ifndef MAINBIRD_H
 #define MAINBIRD_H
 
-#include "Guns.h"
-#include "Pipe.h"
-#include "GameOver.h"
+#include "../GunAndBullet/Guns.h"
+#include "../Scene/Pipe.h"
+#include "../Game/GameOver.h"
 #include "Character.h"
 
 const int mainBirdPosX = 200;

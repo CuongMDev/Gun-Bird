@@ -2,10 +2,8 @@
 #define PIPE_H
 
 #include "Ground.h"
-#include "ObjectsList.h"
-#include "GameOver.h"
-
-const Uint32 waitTimeBeforePlaying = 2000;
+#include "../Other/ObjectsList.h"
+#include "../Game/GameOver.h"
 
 //pipe will be created when current time = this
 Uint32 nextCreatedTime = waitTimeBeforePlaying;
@@ -27,6 +25,7 @@ public:
 
     static void spawnPipe(ObjectsList *pipeList);
     static void renderAll(ObjectsList *pipeList);
+    static void resetTime();
 
     int getHeight() const override;
 
@@ -52,9 +51,6 @@ void Pipe::spawnPipe(ObjectsList *pipeList)
         //create new pipe
         Pipe *pipe = new Pipe(getRandomNumber(50, SCREEN_HEIGHT / 2), flip);
         pipeList->add(pipe);
-
-        //reset created time
-        nextCreatedTime = SDL_GetTicks() + getRandomNumber(500, 500);
     }
 }
 
@@ -65,6 +61,11 @@ void Pipe::renderAll(ObjectsList *pipeList)
     }
 
     pipeList->renderAll();
+}
+
+void Pipe::resetTime()
+{
+    nextCreatedTime = SDL_GetTicks() + waitTimeBeforePlaying;
 }
 
 bool Pipe::checkOutTheBorder()
@@ -92,7 +93,7 @@ void Pipe::init(int height, bool flip)
 void Pipe::loadIMG()
 {
     //image: https://github.com/terroo/flappybird/tree/main
-    mTexture->loadFromFile(imagePath + "pipe.png");
+    mTexture->loadFromFile(sceneImagePath + "pipe.png");
 }
 
 int Pipe::getHeight() const
