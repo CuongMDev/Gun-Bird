@@ -65,7 +65,6 @@ protected:
     void decreaseVelAndAngle();
 
     void onDied();
-    bool isDied() const;
     bool renderCharacter();
 
     void setVelX(int value);
@@ -76,6 +75,7 @@ protected:
     void addVelAngle(double value);
 
 public:
+    bool isDied() const;
 };
 
 Character::Character(int x, int y, CHARACTER_TYPE character) : Object(false)

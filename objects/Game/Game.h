@@ -3,6 +3,7 @@
 
 #include "../AllObjects.h"
 #include "../CursorMouse/CursorMouse.h"
+#include "Point.h"
 
 class Game
 {
@@ -13,6 +14,7 @@ private:
     ObjectsList *batList;
     GameOver *gameOver;
     ObjectsList *pipeList;
+    Point *point;
 
     void handleGameOver();
     void resetGame();
@@ -42,6 +44,7 @@ Game::Game()
     batList = new ObjectsList();
     gameOver = new GameOver();
     pipeList = new ObjectsList();
+    point = new Point;
     cursorMouse = new CursorMouse();
     resetGame();
 }
@@ -54,6 +57,7 @@ Game::~Game()
     delete batList;
     delete gameOver;
     delete pipeList;
+    delete point;
 }
 
 void Game::handleGameOver()
@@ -69,6 +73,7 @@ void Game::resetGame()
     pipeList->reset();
     Pipe::resetTime();
     batList->reset();
+    point->init();
 
     gVelocityYScene = gInitVelocityYScene;
 
@@ -114,6 +119,7 @@ void Game::render()
     background->render();
     ground->render();
     Pipe::renderAll(pipeList);
+    point->render();
     Bat::renderAll(batList);
     if (!mainBird->render()) {
         gameOver->render();
@@ -135,13 +141,25 @@ void Game::checkColisionBirdAndEnemyBullet()
 {
     std::_List_iterator<Object *> objectA, objectB;
     auto &bulletList = mainBird->getBulletList();
+    bool continueToFind = false;
 
     //find until cant find
-    while (batList->getCollisionObjects(bulletList, objectA, objectB)) {
-        bulletList.deleteObject(objectB);
-
+    while (batList->getCollisionObjects(bulletList, objectA, objectB, continueToFind)) {
         Bat *bat = dynamic_cast<Bat*>(*objectA);
-        bat->decreaseHealth();
+
+        if (!bat->isDied()) {
+            bulletList.deleteObject(objectB);
+            bat->decreaseHealth();
+            if (bat->isDied()) {
+                point->addPoint();
+            }
+        }
+        else {
+            //next bat
+            objectB++;
+        }
+
+        continueToFind = true;
     }
 }
 

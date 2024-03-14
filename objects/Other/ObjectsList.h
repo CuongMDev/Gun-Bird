@@ -37,7 +37,6 @@ int ObjectsList::count()
     return (int)objectList.size();
 }
 
-
 void ObjectsList::add(Object *object)
 {
     objectList.push_back(object);
@@ -83,15 +82,13 @@ bool ObjectsList::getCollisionObjects(ObjectsList &objectsListB, listIter &objec
 {
     listIter objA, objB;
     if (continueToFind) {
-        objA = objectA;
         objB = objectB;
     }
     else {
-        objA = objectList.begin();
         objB = objectsListB.objectList.begin();
     }
     for (; objB != objectsListB.objectList.end(); objB++) {
-        if (this->getCollisionObject(**objB, objA, continueToFind)) {
+        if (this->getCollisionObject(**objB, objA)) {
             objectA = objA;
             objectB = objB;
             return true;

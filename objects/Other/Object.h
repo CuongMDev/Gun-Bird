@@ -54,6 +54,7 @@ int Object::getHeight() const
 
 bool Object::render()
 {
+    mTexture->render(mPosX, mPosY);
     return true;
 }
 
