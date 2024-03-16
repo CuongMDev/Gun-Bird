@@ -2,16 +2,20 @@
 #define BAT_H
 
 #include "Character.h"
-#include "../Other/objectsList.h"
-
-const int batPosX = SCREEN_WIDTH;
-const int batMinHeight = 50;
-const int batSpeed = 1;
-const int batTimeBeforeBeingDeleted = 1000;
+#include "../Other/ObjectsList.h"
 
 class Bat : public Character
 {
 private:
+    static const int batPosX = SCREEN_WIDTH;
+    const int batSpeed = 1;
+    const int batTimeBeforeBeingDeleted = 1000;
+    //random time interval after nextCreatedTime
+    static const std::pair<int, int> randomTimeInterval;
+    static const std::pair<int, int> randomHeightInterval;
+    //pipe will be created when current time = this
+    static Uint32 nextCreatedTime;
+
     static bool onAdd;
     int downTime;
 
@@ -29,6 +33,10 @@ public:
     void decreaseHealth();
     bool render() override;
 };
+
+const std::pair<int, int> Bat::randomTimeInterval = {500, 1000};
+const std::pair<int, int> Bat::randomHeightInterval = {50, SCREEN_HEIGHT - 50};
+Uint32 Bat::nextCreatedTime = waitTimeBeforePlaying;
 
 Bat::Bat(int x, int y) : Character(x, y, BAT)
 {
@@ -81,13 +89,13 @@ void Bat::spawnBat(ObjectsList *batList)
 {
     if (SDL_GetTicks() >= nextCreatedTime) {
         //bat Y
-        int batPosY = getRandomNumber( batMinHeight, SCREEN_HEIGHT);
+        int batPosY = getRandomNumber(randomHeightInterval.first, randomHeightInterval.second);
         //create new bat
         Bat *bat = new Bat(batPosX, batPosY);
         batList->add(bat);
 
         //reset created time
-        nextCreatedTime = SDL_GetTicks() + getRandomNumber(500, 500);
+        nextCreatedTime = SDL_GetTicks() + getRandomNumber(randomTimeInterval.first, randomTimeInterval.second);
     }
 }
 

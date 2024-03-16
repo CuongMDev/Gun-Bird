@@ -15,6 +15,7 @@ private:
     GameOver *gameOver;
     ObjectsList *pipeList;
     Point *point;
+    CursorMouse* cursorMouse;
 
     void handleGameOver();
     void resetGame();
@@ -58,6 +59,7 @@ Game::~Game()
     delete gameOver;
     delete pipeList;
     delete point;
+    delete cursorMouse;
 }
 
 void Game::handleGameOver()
@@ -65,7 +67,7 @@ void Game::handleGameOver()
     //stop scene move
     gVelocityYScene = 0;
 
-    cursorMouse->setCursor(DEFAULT_CURSOR);
+    CursorMouse::setCursor(DEFAULT_CURSOR);
 }
 
 void Game::resetGame()
@@ -80,7 +82,7 @@ void Game::resetGame()
     gameOver->reset();
     mainBird->init(mainBirdPosX, mainBirdPosY);
 
-    cursorMouse->setCursor(AIM_CURSOR);
+    CursorMouse::setCursor(AIM_CURSOR);
 }
 
 void Game::handleEvent(SDL_Event *e)

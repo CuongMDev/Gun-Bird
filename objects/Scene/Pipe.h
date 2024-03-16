@@ -5,12 +5,15 @@
 #include "../Other/ObjectsList.h"
 #include "../Game/GameOver.h"
 
-//pipe will be created when current time = this
-Uint32 nextCreatedTime = waitTimeBeforePlaying;
-
 class Pipe : public Object
 {
 private:
+    //random time interval after nextCreatedTime
+    static const std::pair<int, int> randomTimeInterval;
+    static const std::pair<int, int> randomHeightInterval;
+    //pipe will be created when current time = this
+    static Uint32 nextCreatedTime;
+
     //pipe height
     int mHeight;
     //Is flipped
@@ -32,6 +35,10 @@ public:
     bool render() override;
 };
 
+const std::pair<int, int> Pipe::randomTimeInterval = {1000, 3000};
+const std::pair<int, int> Pipe::randomHeightInterval = {50, SCREEN_HEIGHT / 2};
+Uint32 Pipe::nextCreatedTime = waitTimeBeforePlaying;
+
 Pipe::Pipe(int height, bool flip)
 {
     loadIMG();
@@ -47,10 +54,13 @@ void Pipe::spawnPipe(ObjectsList *pipeList)
         //random flip
         bool flip = getRandomNumber(0, 1);
         //pipe height
-        int pipeHeight = getRandomNumber(50, 300);
+        int pipeHeight = getRandomNumber(randomHeightInterval.first, randomHeightInterval.second);
         //create new pipe
-        Pipe *pipe = new Pipe(getRandomNumber(50, SCREEN_HEIGHT / 2), flip);
+        Pipe *pipe = new Pipe(pipeHeight, flip);
         pipeList->add(pipe);
+
+        //reset created time
+        nextCreatedTime = SDL_GetTicks() + getRandomNumber(randomTimeInterval.first, randomTimeInterval.second);
     }
 }
 
@@ -115,5 +125,4 @@ bool Pipe::render()
 
     return true;
 }
-
 #endif

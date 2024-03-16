@@ -4,6 +4,11 @@
 #include <iostream>
 #include <math.h>
 
+double distance(const int &p1X, const int &p1Y, const int &p2X, const int &p2Y);
+int getRandomNumber(const int &l, const int &r);
+bool checkCollision(const int &p1X, const int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H);
+void setPosToBorderPos(int &p1X, int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H);
+
 double distance(const int &p1X, const int &p1Y, const int &p2X, const int &p2Y)
 {
     int dx = p2X - p1X;
@@ -24,6 +29,15 @@ bool checkCollision(const int &p1X, const int &p1Y, const int &p1W, const int &p
     if (p1Y + p1H < p2Y) return false;
 
     return true;
+}
+
+void setPosToBorderPos(int &p1X, int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H)
+{
+    if (p1X > p2X + p2W) p1X = p2X + p2W;
+    if (p1X + p1W < p2X) p1X = p2X - p1W;
+
+    if (p1Y > p2Y + p2H) p1Y = p2Y + p2H;
+    if (p1Y + p1H < p2Y) p1Y = p2Y - p1H;
 }
 
 #endif

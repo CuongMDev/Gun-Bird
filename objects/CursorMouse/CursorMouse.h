@@ -7,9 +7,6 @@
 //Load image surface at specified path
 SDL_Surface *loadSurfaceFromFile(const std::string &path, const bool &removeBKG = false, const Uint8 &r = 0, const Uint8 &g = 0, const Uint8 &b = 0);
 
-class CursorMouse;
-CursorMouse* cursorMouse;
-
 enum CURSOR_TYPE
 {
     DEFAULT_CURSOR,
@@ -21,19 +18,22 @@ enum CURSOR_TYPE
 class CursorMouse
 {
 private:
-    SDL_Cursor *mCursor[CURSOR_COUNT];
+    static SDL_Cursor *mCursor[CURSOR_COUNT];
 
-    SDL_Cursor *loadCursorFromFile(const std::string &path);
+    static SDL_Cursor *loadCursorFromFile(const std::string &path);
 
-    void loadIMG();
+    static void loadIMG();
 public:
     CursorMouse();
     ~CursorMouse();
 
-    void setCursor(CURSOR_TYPE cursor);
+    static void setCursor(CURSOR_TYPE cursor);
     //When shooting, the mouse will recoil upwards.
-    void recoilMouse(int xRecoil, int yRecoil);
+    static void recoilMouse(int xRecoil, int yRecoil);
+    static void move(int valueX, int valueY);
 };
+
+SDL_Cursor* CursorMouse::mCursor[CURSOR_COUNT] = {NULL};
 
 CursorMouse::CursorMouse()
 {
@@ -84,10 +84,20 @@ void CursorMouse::recoilMouse(int xRecoil, int yRecoil)
     xRecoil = getRandomNumber(std::max(-xRecoil, xRecoil), xRecoil);
     yRecoil = getRandomNumber(std::max(0, yRecoil), yRecoil);
 
+    move(xRecoil, -yRecoil);
+}
+
+void CursorMouse::move(int valueX, int valueY)
+{
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
 
-    SDL_WarpMouseInWindow(gWindow, mouseX + xRecoil, std::max(0, mouseY - yRecoil));
+    mouseX += valueX, mouseY += valueY;
+    if (!checkCollision(mouseX, mouseY, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)) {
+        setPosToBorderPos(mouseX, mouseY, 0, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    }
+
+    SDL_WarpMouseInWindow(gWindow, mouseX, mouseY);
 }
 
 SDL_Surface *loadSurfaceFromFile(const std::string &path, const bool &removeBKG, const Uint8 &r, const Uint8 &g, const Uint8 &b) {

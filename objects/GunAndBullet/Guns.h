@@ -17,9 +17,19 @@ private:
     //The angle
     double mAngle;
 
+    //shot when curTime=speed
+    int curTime;
+    int shootDelay;
+
+    int mVelRecoil;
+    const int maxVelRecoil = 10;
+
+    bool mouseHold;
+
     void loadGunIMG();
     void turnTowards(int mouseX, int mouseY);
     void updateAngle();
+    //check and shoot
     void shoot();
 
 public:
@@ -36,9 +46,8 @@ public:
 
 Guns::Guns()
 {
-    mPosX = 0;
-    mPosY = 0;
-    mAngle = 0;
+    loadGunIMG();
+    init();
 }
 
 ObjectsList &Guns::getBulletList()
@@ -48,14 +57,20 @@ ObjectsList &Guns::getBulletList()
 
 void Guns::init()
 {
-    loadGunIMG();
+    mPosX = 0;
+    mPosY = 0;
+    mAngle = 0;
+    mVelRecoil = 0;
+    shootDelay = 5;
+    mouseHold = false;
+
     bulletsList.reset();
 }
 
 void Guns::loadGunIMG()
 {
     //image: https://midnitepixelated.itch.io/pixel-guns
-    mTexture->loadFromFile(gunImagePath + "gun0.png", true, 67, 76, 111);
+    mTexture->loadFromFile(gunImagePath + "ak47.png", true, 67, 76, 111);
 }
 
 void Guns::turnTowards(int mouseX, int mouseY)
@@ -76,8 +91,28 @@ void Guns::updateAngle()
 
 void Guns::shoot()
 {
+    if (!mouseHold) {
+        if (mVelRecoil > 0) {
+            mVelRecoil--;
+            //restore gun aim
+            CursorMouse::move(0, 2);
+        }
+        return;
+    }
+
+    curTime++;
+    if (curTime < shootDelay) {
+        //It's not time to shoot yet
+        return;
+    }
+
+    if (mVelRecoil < maxVelRecoil) {
+        mVelRecoil++;
+    }
+    //reset
+    curTime = 0;
     //recoil
-    cursorMouse->recoilMouse(bulletsList.count (), 5 * bulletsList.count());
+    CursorMouse::recoilMouse(curTime, 10 * std::max(0, mVelRecoil - 3));
     //add bullet
     bulletsList.add(new Bullets(mPosX, mPosY, mAngle));
 }
@@ -89,14 +124,21 @@ void Guns::handleEvent(SDL_Event *e)
     }
     else if (e->type == SDL_MOUSEBUTTONDOWN) {
         if (e->button.button == SDL_BUTTON_LEFT) {
-            // left mouse button pressed
-            shoot();
+            //left mouse
+            mouseHold = true;
+        }
+    }
+    else if (e->type == SDL_MOUSEBUTTONUP) {
+        if (e->button.button == SDL_BUTTON_LEFT) {
+            //left mouse
+            mouseHold = false;
         }
     }
 }
 
 bool Guns::render()
 {
+    shoot();
     bulletsList.renderAll();
 
     SDL_Point center{ pivotX, pivotY };

@@ -44,7 +44,7 @@ private:
     bool died;
 
     void loadIMG();
-    void setPosToBorderPos();
+    void setToBorderPos();
     void increaseTimeRender();
 
     bool checkOutBorder();
@@ -177,7 +177,7 @@ void Character::loadIMG()
     }
 }
 
-void Character::setPosToBorderPos()
+void Character::setToBorderPos()
 {
     if (mPosX < 0) {
         mPosX = 0;
@@ -316,7 +316,7 @@ bool Character::move()
 
     if (checkOutBorder()) {
         // set pos to border pos
-        setPosToBorderPos();
+        setToBorderPos();
         if (isStayingOnGround()) {
             //reset Y velocity
             mVelY = 0;

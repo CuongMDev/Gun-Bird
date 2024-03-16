@@ -53,6 +53,10 @@ void MainBird::handleEvent(SDL_Event *e)
                 setVelY(15);
                 setVelAngle(8);
                 break;
+            case SDLK_w:
+                setVelY(15);
+                setVelAngle(8);
+                break;
 
             default:
                 break;
