@@ -74,7 +74,10 @@ void Game::resetGame()
 {
     pipeList->reset();
     Pipe::resetTime();
+
     batList->reset();
+    Bat::resetTime();
+
     point->init();
 
     gVelocityYScene = gInitVelocityYScene;

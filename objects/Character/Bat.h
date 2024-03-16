@@ -27,6 +27,7 @@ public:
 
     static void spawnBat(ObjectsList *batList);
     static void renderAll(ObjectsList *batList);
+    static void resetTime();
 
     void init(int x, int y);
 
@@ -35,7 +36,7 @@ public:
 };
 
 const std::pair<int, int> Bat::randomTimeInterval = {500, 1000};
-const std::pair<int, int> Bat::randomHeightInterval = {50, SCREEN_HEIGHT - 50};
+const std::pair<int, int> Bat::randomHeightInterval = {50, groundPosY - 50};
 Uint32 Bat::nextCreatedTime = waitTimeBeforePlaying;
 
 Bat::Bat(int x, int y) : Character(x, y, BAT)
@@ -111,6 +112,11 @@ void Bat::renderAll(ObjectsList *batList)
     }
 
     batList->renderAll();
+}
+
+void Bat::resetTime()
+{
+    nextCreatedTime = SDL_GetTicks() + waitTimeBeforePlaying;
 }
 
 #endif //BAT_H
