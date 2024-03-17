@@ -9,13 +9,33 @@
 const int pivotX = 20;
 const int pivotY = 10;
 
+enum BULLET_TYPE
+{
+    PISTOL_BULLET,
+    GOLD_PISTOL_BULLET,
+    AK47_BULLET,
+    SNIPER_BULLET,
+
+    BULLET_COUNT
+};
+
+struct BulletProperties
+{
+    double speed;
+
+    std::string imageName;
+};
+
 class Bullets : public Object
 {
 private:
+    static const BulletProperties bulletProperties[BULLET_COUNT];
+    static LTexture sTexture[BULLET_COUNT];
+
+    BULLET_TYPE currentBullet;
+
     //The velocity
     int mVelX, mVelY;
-    //Speed;
-    double mSpeed;
     //Angle
     double mAngle;
 
@@ -23,37 +43,48 @@ private:
     bool move();
 
     void loadIMG();
-    void calculateVelocity();
+    void calculatePos(int x, int y, int gunWidth);
 
 protected:
-    void init(int x, int y, double angle);
+    void init(int x, int y, int gunWidth, double angle, BULLET_TYPE bulletType);
 
 public:
-    Bullets(int x, int y, double angle);
+    Bullets(int x, int y,  int gunWidth, double angle, BULLET_TYPE bulletType);
     ~Bullets();
 
     bool render() override;
 };
 
-Bullets::Bullets(int x, int y, double angle)
+const BulletProperties Bullets::bulletProperties[] = {
+        {17, "pistol.png"}, //pistol
+        {30, "goldpistol.png"}, //gold pistol
+        {20, "ak47.png"}, //AK47
+        {50, "sniper.png"}, //Sniper
+};
+
+LTexture Bullets::sTexture[];
+
+Bullets::Bullets(int x, int y, int gunWidth, double angle, BULLET_TYPE bulletType) : Object(false)
 {
-    init(x, y, angle);
     loadIMG();
+    init(x, y, gunWidth, angle, bulletType);
 }
 
 Bullets::~Bullets()
 =default;
 
-void Bullets::init(int x, int y, double angle)
+void Bullets::init(int x, int y, int gunWidth, double angle, BULLET_TYPE bulletType)
 {
-    mPosX = x + pivotX / 2;
-    mPosY = y + pivotY / 2;
+    calculatePos(x, y, gunWidth);
 
-    mSpeed = 20;
+    currentBullet = bulletType;
+    mTexture = &sTexture[currentBullet];
 
     mAngle = angle;
 
-    calculateVelocity();
+    //calculate Velocity
+    mVelX = x, mVelY = y;
+    calculateVelocityToMouse(mVelX, mVelY, bulletProperties[currentBullet].speed);
 }
 
 bool Bullets::checkOutTheBorder()
@@ -70,27 +101,26 @@ bool Bullets::checkOutTheBorder()
 
 void Bullets::loadIMG()
 {
+    static bool loadedIMG = false;
+    if (loadedIMG) {
+        return;
+    }
+    loadedIMG = true;
+
     //image: https://midnitepixelated.itch.io/pixel-Bullets
-    mTexture->loadFromFile(bulletImagePath + "bullet0.png", true, 0, 0, 0);
+    for (int bulletType = 0; bulletType < BULLET_COUNT; bulletType++) {
+        sTexture[bulletType].loadFromFile(bulletImagePath + bulletProperties[bulletType].imageName, true, 0, 0, 0);
+    }
 }
 
-inline void Bullets::calculateVelocity()
+void Bullets::calculatePos(int x, int y, int gunWidth)
 {
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
+    mPosX = x;
+    mPosY = y;
+    calculateVelocityToMouse(x, y, gunWidth);
 
-    double dx = mouseX - mPosX;
-    double dy = mouseY - mPosY;
-
-    double length = distance(mPosX, mPosY, mouseX, mouseY);
-    if (length != 0) {
-        dx /= length;
-        dy /= length;
-    }
-
-    // Scale direction vector by speed to get velocity vector
-    mVelX = (dx * mSpeed) + trunc(2 * (double)(SCREEN_HEIGHT - mouseY) / SCREEN_HEIGHT);
-    mVelY = dy * mSpeed;
+    mPosX += x;
+    mPosY += y;
 }
 
 bool Bullets::move()

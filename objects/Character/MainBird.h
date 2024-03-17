@@ -62,9 +62,8 @@ void MainBird::handleEvent(SDL_Event *e)
                 break;
         }
     }
-    else {
-        gun.handleEvent(e);
-    }
+
+    gun.handleEvent(e);
 }
 
 void MainBird::handleKey(const Uint8 *currentKeyStates)

@@ -3,6 +3,7 @@
 
 #include "Bullets.h"
 #include "../CursorMouse/CursorMouse.h"
+#include "ExplosionEffect.h"
 #include <cmath>
 #include <list>
 
@@ -28,6 +29,8 @@ struct GunProperties
     int maxVelRecoil;
     int shootDelay;
 
+    BULLET_TYPE bulletType;
+
     std::string imageName;
 };
 
@@ -35,13 +38,16 @@ class Guns : private Object
 {
 private:
     static const GunProperties gunProperties[GUN_COUNT];
-    LTexture sTexture[GUN_COUNT];
+    static LTexture sTexture[GUN_COUNT];
 
     ObjectsList bulletsList;
     GUN_TYPE currentGun;
 
     //The angle
     double mAngle;
+
+    int curBullet;
+    int bulletInTape;
 
     //shot when curTime=shotDelay
     int curTime;
@@ -68,15 +74,18 @@ public:
     bool render() override;
     void handleEvent(SDL_Event *e);
     void setPosAndAngle(int x, int y);
+    void changeGun(GUN_TYPE gunType);
 };
 
 const GunProperties Guns::gunProperties[] = {
-        {3, 17, 1, 3, 15, "pistol.png"}, //pistol
-        {3, 17, 1, 3, 10, "silentpistol.png"}, //silent pistol
-        {7, 17,1,  5, 15, "goldpistol.png"}, //gold pistol
-        {5, 7, 1, 7, 5, "ak47.png"}, //AK47
-        {12, 30, 20, 20, 30, "sniper.png"}, //Sniper
+        {3, 17, 1, 3, 15, PISTOL_BULLET, "pistol.png"}, //pistol
+        {3, 17, 1, 3, 10, PISTOL_BULLET, "silentpistol.png"}, //silent pistol
+        {7, 17,1,  5, 15, GOLD_PISTOL_BULLET, "goldpistol.png"}, //gold pistol
+        {5, 7, 1, 7, 5, AK47_BULLET, "ak47.png"}, //AK47
+        {12, 30, 20, 20, 30, SNIPER_BULLET, "sniper.png"}, //Sniper
 };
+
+LTexture Guns::sTexture[];
 
 Guns::Guns() : Object(false)
 {
@@ -97,7 +106,7 @@ void Guns::init()
     mVelRecoil = 0;
     mouseHold = false;
 
-    currentGun = SNIPER;
+    currentGun = PISTOL;
     mTexture = &sTexture[currentGun];
 
     bulletsList.reset();
@@ -162,14 +171,14 @@ void Guns::shoot()
     }
 
     //add bullet
-    bulletsList.add(new Bullets(mPosX, mPosY, mAngle));
+    bulletsList.add(new Bullets(mPosX, mPosY + pivotY, getWidth(), mAngle, gunProperties[currentGun].bulletType));
 
     //increase time restore aim
     if (curTimeRestoreAim < gunProperties[currentGun].timeRestoreAim * 2) {
         curTimeRestoreAim += gunProperties[currentGun].timeRestoreAim;
     }
 
-    mVelRecoil = std::max(mVelRecoil + gunProperties[currentGun].recoil, gunProperties[currentGun].maxVelRecoil);
+    mVelRecoil = std::min(mVelRecoil + gunProperties[currentGun].recoil, gunProperties[currentGun].maxVelRecoil);
     //reset
     curTime = 0;
     //recoil
@@ -184,6 +193,29 @@ void Guns::shoot()
 
 void Guns::handleEvent(SDL_Event *e)
 {
+    if (e->type == SDL_KEYDOWN) {
+        switch (e->key.keysym.sym) {
+            case SDLK_1:
+                changeGun(PISTOL);
+                break;
+            case SDLK_2:
+                changeGun(SILENT_PISTOL);
+                break;
+            case SDLK_3:
+                changeGun(GOLD_PISTOL);
+                break;
+            case SDLK_4:
+                changeGun(AK47);
+                break;
+            case SDLK_5:
+                changeGun(SNIPER);
+                break;
+
+            default:
+                break;
+        }
+    }
+
     if (e->type == SDL_MOUSEMOTION) {
         updateAngle();
     }
@@ -217,6 +249,12 @@ void Guns::setPosAndAngle(int x, int y)
     mPosX = x;
     mPosY = y;
     updateAngle();
+}
+
+void Guns::changeGun(GUN_TYPE gunType)
+{
+    currentGun = gunType;
+    mTexture = &sTexture[currentGun];
 }
 
 #endif
