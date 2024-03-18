@@ -4,11 +4,18 @@
 #include "Bullets.h"
 #include "../CursorMouse/CursorMouse.h"
 #include "ExplosionEffect.h"
+#include "../Other/Font.h"
 #include <cmath>
 #include <list>
 
 const int gunPosX = 5;
 const int gunPosY = groundPosY + 10;
+
+const int typePosX = 25;
+const int typePosY = 50;
+
+const int bulletTextPosX = 25;
+const int bulletTextPosY = 80;
 
 enum GUN_TYPE
 {
@@ -28,6 +35,7 @@ struct GunProperties
     int recoil;
     int maxVelRecoil;
     int shootDelay;
+    int bulletInTape;
 
     BULLET_TYPE bulletType;
 
@@ -39,17 +47,23 @@ class Guns : private Object
 private:
     static const GunProperties gunProperties[GUN_COUNT];
     static LTexture sTexture[GUN_COUNT];
+    static const int reloadingTime;
+
+    LTexture bulletLabel;
+
+    int curBullet[GUN_COUNT];
+    int bulletLeft[GUN_COUNT];
 
     ObjectsList bulletsList;
     GUN_TYPE currentGun;
 
     ExplosionEffect explosionEffect;
 
+    //-1 if not reloading
+    int reloadingEndTime;
+
     //The angle
     double mAngle;
-
-    int curBullet;
-    int bulletInTape;
 
     //shoot when curTime=shootDelay
     int curTime;
@@ -66,8 +80,10 @@ private:
     void addBullet();
     void calculateGunHeadPos(int &x, int &y);
     void restoreAim();
+    void updateBulletText();
     //check and shoot
     void shoot();
+    void checkReloading();
 
 public:
     Guns();
@@ -79,15 +95,17 @@ public:
     void handleEvent(SDL_Event *e);
     void setPosAndAngle(int x, int y);
     void changeGun(GUN_TYPE gunType);
+    void reload();
 };
 
 const GunProperties Guns::gunProperties[] = {
-        {3, 17, 1, 3, 15, PISTOL_BULLET, "pistol.png"}, //pistol
-        {3, 17, 1, 3, 10, PISTOL_BULLET, "silentpistol.png"}, //silent pistol
-        {7, 17,1,  5, 15, GOLD_PISTOL_BULLET, "goldpistol.png"}, //gold pistol
-        {5, 7, 1, 7, 5, AK47_BULLET, "ak47.png"}, //AK47
-        {12, 30, 20, 20, 30, SNIPER_BULLET, "sniper.png"}, //Sniper
+        {3, 17, 1, 3, 15, 7, PISTOL_BULLET, "pistol.png"}, //pistol
+        {3, 17, 1, 3, 10, 7, PISTOL_BULLET, "silentpistol.png"}, //silent pistol
+        {7, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, "goldpistol.png"}, //gold pistol
+        {5, 7, 1, 7, 5, 30,AK47_BULLET, "ak47.png"}, //AK47
+        {12, 30, 20, 20, 30, 5, SNIPER_BULLET, "sniper.png"}, //Sniper
 };
+const int Guns::reloadingTime = 2000;
 
 LTexture Guns::sTexture[];
 
@@ -95,6 +113,7 @@ Guns::Guns() : Object(false)
 {
     loadGunIMG();
     init();
+    updateBulletText();
 }
 
 ObjectsList &Guns::getBulletList()
@@ -109,10 +128,18 @@ void Guns::init()
     mAngle = 0;
     mVelRecoil = 0;
     mouseHold = false;
+    reloadingEndTime = -1;
     explosionEffect.init();
 
     currentGun = PISTOL;
     mTexture = &sTexture[currentGun];
+
+    memset(curBullet, 0, sizeof(curBullet));
+    memset(bulletLeft, 0, sizeof(bulletLeft));
+
+    curBullet[currentGun] = gunProperties[currentGun].bulletInTape;
+    bulletLeft[currentGun] = -1; //infinity
+    updateBulletText();
 
     bulletsList.reset();
 }
@@ -149,6 +176,9 @@ void Guns::addBullet()
     //Adjust the bullet to fit into the barrel of the gun
     explosionEffect.start(x, y - 10, mAngle);
     bulletsList.add(new Bullets(x, y - 5, mAngle, gunProperties[currentGun].bulletType));
+
+    curBullet[currentGun]--;
+    updateBulletText();
 }
 
 void Guns::calculateGunHeadPos(int &x, int &y)
@@ -178,9 +208,34 @@ void Guns::restoreAim()
     }
 }
 
+void Guns::updateBulletText()
+{
+    std::string bulletLeftText;
+    //infinity
+    if (bulletLeft[currentGun] == -1) {
+        bulletLeftText = "oo";
+    }
+    else {
+        bulletLeftText = std::to_string(bulletLeft[currentGun]);
+    }
+    // A/B
+    bulletLabel.loadFromRenderedText(std::to_string(curBullet[currentGun]) + '/' + bulletLeftText, firaFonts[FontStyle::Bold], {0, 0, 0});
+}
 
 void Guns::shoot()
 {
+    //no bullet
+    if (curBullet[currentGun] == 0) {
+        if (!mouseHold) {
+            reload();
+        }
+        return;
+    }
+    //is reloading
+    if (reloadingEndTime != -1) {
+        return;
+    }
+
     if (curTime < gunProperties[currentGun].shootDelay) {
         curTime++;
     }
@@ -215,6 +270,33 @@ void Guns::shoot()
     }
 }
 
+void Guns::checkReloading()
+{
+    if (reloadingEndTime == -1) {
+        return;
+    }
+    if (SDL_GetTicks() <= reloadingEndTime) {
+        return;
+    }
+
+//------------------------------------------------
+    //reset
+    reloadingEndTime = -1;
+
+    //starting reloading
+    if (bulletLeft[currentGun] == -1) {
+        curBullet[currentGun] = gunProperties[currentGun].bulletInTape;
+    } //infinity
+    else {
+        int addCount = std::min(bulletLeft[currentGun], gunProperties[currentGun].bulletInTape - curBullet[currentGun]);
+        curBullet[currentGun] += addCount;
+        bulletLeft[currentGun] -= addCount;
+    }
+
+    updateBulletText();
+}
+
+
 void Guns::handleEvent(SDL_Event *e)
 {
     if (e->type == SDL_KEYDOWN) {
@@ -233,6 +315,10 @@ void Guns::handleEvent(SDL_Event *e)
                 break;
             case SDLK_5:
                 changeGun(SNIPER);
+                break;
+
+            case SDLK_r:
+                reload();
                 break;
 
             default:
@@ -259,6 +345,13 @@ void Guns::handleEvent(SDL_Event *e)
 
 bool Guns::render()
 {
+    checkReloading();
+
+    //show type
+    mTexture->render(typePosX, typePosY);
+    //show bullet
+    bulletLabel.render(bulletTextPosX, bulletTextPosY);
+
     shoot();
     bulletsList.renderAll();
 
@@ -280,6 +373,19 @@ void Guns::changeGun(GUN_TYPE gunType)
 {
     currentGun = gunType;
     mTexture = &sTexture[currentGun];
+
+    updateBulletText();
+}
+
+void Guns::reload()
+{
+    //no bullet
+    if (bulletLeft[currentGun] == 0) {
+        return;
+    }
+    if (reloadingEndTime == -1) {
+        reloadingEndTime = SDL_GetTicks() + reloadingTime;
+    }
 }
 
 #endif
