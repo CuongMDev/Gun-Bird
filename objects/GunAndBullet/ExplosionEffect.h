@@ -6,22 +6,21 @@
 class ExplosionEffect : public Object
 {
 private:
-    LTexture sTexture[4];
+    double mAngle;
+    bool isStarting;
 
-    const int imgCount = 4;
-    int curIMGRender;
+    void loadIMG();
 
 public:
     ExplosionEffect();
     ~ExplosionEffect();
 
     void init();
-    void loadIMG();
-    void updatePos(int x, int y, int gunWidth);
+    void start(int x, int y, double angle);
     bool render() override;
 };
 
-ExplosionEffect::ExplosionEffect() : Object(false)
+ExplosionEffect::ExplosionEffect()
 {
     init();
     loadIMG();
@@ -30,41 +29,33 @@ ExplosionEffect::ExplosionEffect() : Object(false)
 ExplosionEffect::~ExplosionEffect()
 = default;
 
+void ExplosionEffect::start(int x, int y, double angle)
+{
+    mPosX = x;
+    mPosY = y;
+    mAngle = angle;
+
+    isStarting = true;
+}
+
 void ExplosionEffect::init()
 {
-    //not shotting
-    curIMGRender = 4;
+    isStarting = false;
 }
 
 void ExplosionEffect::loadIMG()
 {
-    sTexture[0].loadFromFile(gunImagePath + "explosionEffect0.png");
-    sTexture[1].loadFromFile(gunImagePath + "explosionEffect1.png");
-    sTexture[2].loadFromFile(gunImagePath + "explosionEffect2.png");
-    sTexture[3].loadFromFile(gunImagePath + "explosionEffect3.png");
-}
-
-void ExplosionEffect::updatePos(int x, int y, int gunWidth)
-{
-    //calculate pos
-    mPosX = x;
-    mPosY = y;
-    calculateVelocityToMouse(x, y, gunWidth);
-
-    mPosX += x;
-    mPosY += y;
+    mTexture->loadFromFile(gunImagePath + "explosionEffect.png", true, 255, 255, 255);
 }
 
 bool ExplosionEffect::render()
 {
-    //is not shotting
-    if (curIMGRender >= 4) {
-        return false;
+    if (isStarting) {
+        mTexture->render(mPosX, mPosY, NULL, mAngle);
+        isStarting = false;
     }
 
-    mTexture = &sTexture[curIMGRender];
-    curIMGRender++;
-    return Object::render();
+    return true;
 }
 
 

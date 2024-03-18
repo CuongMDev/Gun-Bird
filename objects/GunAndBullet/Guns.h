@@ -43,13 +43,15 @@ private:
     ObjectsList bulletsList;
     GUN_TYPE currentGun;
 
+    ExplosionEffect explosionEffect;
+
     //The angle
     double mAngle;
 
     int curBullet;
     int bulletInTape;
 
-    //shot when curTime=shotDelay
+    //shoot when curTime=shootDelay
     int curTime;
 
     int curTimeRestoreAim;
@@ -61,6 +63,8 @@ private:
     void loadGunIMG();
     void turnTowards(int mouseX, int mouseY);
     void updateAngle();
+    void addBullet();
+    void calculateGunHeadPos(int &x, int &y);
     void restoreAim();
     //check and shoot
     void shoot();
@@ -105,6 +109,7 @@ void Guns::init()
     mAngle = 0;
     mVelRecoil = 0;
     mouseHold = false;
+    explosionEffect.init();
 
     currentGun = PISTOL;
     mTexture = &sTexture[currentGun];
@@ -134,6 +139,26 @@ void Guns::updateAngle()
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
     turnTowards(mouseX, mouseY);
+}
+
+void Guns::addBullet()
+{
+    int x, y;
+    calculateGunHeadPos(x, y);
+
+    //Adjust the bullet to fit into the barrel of the gun
+    explosionEffect.start(x, y - 10, mAngle);
+    bulletsList.add(new Bullets(x, y - 5, mAngle, gunProperties[currentGun].bulletType));
+}
+
+void Guns::calculateGunHeadPos(int &x, int &y)
+{
+    x = mPosX;
+    y = mPosY + pivotY;
+    calculateVelocityToMouse(x, y, getWidth());
+
+    x += mPosX;
+    y += mPosY + pivotY;
 }
 
 void Guns::restoreAim()
@@ -170,8 +195,7 @@ void Guns::shoot()
         return;
     }
 
-    //add bullet
-    bulletsList.add(new Bullets(mPosX, mPosY + pivotY, getWidth(), mAngle, gunProperties[currentGun].bulletType));
+    addBullet();
 
     //increase time restore aim
     if (curTimeRestoreAim < gunProperties[currentGun].timeRestoreAim * 2) {
@@ -240,6 +264,7 @@ bool Guns::render()
 
     SDL_Point center{ pivotX, pivotY };
     mTexture->render(mPosX, mPosY, NULL, mAngle, &center);
+    explosionEffect.render();
 
     return true;
 }

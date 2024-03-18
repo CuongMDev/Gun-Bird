@@ -43,13 +43,12 @@ private:
     bool move();
 
     void loadIMG();
-    void calculatePos(int x, int y, int gunWidth);
 
 protected:
-    void init(int x, int y, int gunWidth, double angle, BULLET_TYPE bulletType);
+    void init(int x, int y, double angle, BULLET_TYPE bulletType);
 
 public:
-    Bullets(int x, int y,  int gunWidth, double angle, BULLET_TYPE bulletType);
+    Bullets(int x, int y, double angle, BULLET_TYPE bulletType);
     ~Bullets();
 
     bool render() override;
@@ -64,18 +63,19 @@ const BulletProperties Bullets::bulletProperties[] = {
 
 LTexture Bullets::sTexture[];
 
-Bullets::Bullets(int x, int y, int gunWidth, double angle, BULLET_TYPE bulletType) : Object(false)
+Bullets::Bullets(int x, int y, double angle, BULLET_TYPE bulletType) : Object(false)
 {
     loadIMG();
-    init(x, y, gunWidth, angle, bulletType);
+    init(x, y, angle, bulletType);
 }
 
 Bullets::~Bullets()
 =default;
 
-void Bullets::init(int x, int y, int gunWidth, double angle, BULLET_TYPE bulletType)
+void Bullets::init(int x, int y, double angle, BULLET_TYPE bulletType)
 {
-    calculatePos(x, y, gunWidth);
+    mPosX = x;
+    mPosY = y;
 
     currentBullet = bulletType;
     mTexture = &sTexture[currentBullet];
@@ -111,16 +111,6 @@ void Bullets::loadIMG()
     for (int bulletType = 0; bulletType < BULLET_COUNT; bulletType++) {
         sTexture[bulletType].loadFromFile(bulletImagePath + bulletProperties[bulletType].imageName, true, 0, 0, 0);
     }
-}
-
-void Bullets::calculatePos(int x, int y, int gunWidth)
-{
-    mPosX = x;
-    mPosY = y;
-    calculateVelocityToMouse(x, y, gunWidth);
-
-    mPosX += x;
-    mPosY += y;
 }
 
 bool Bullets::move()
