@@ -51,6 +51,7 @@ void Bat::init(int x, int y)
 {
     downTime = -1;
     initCharacter(x, y);
+    setVelX(-15);
 }
 
 bool Bat::render()
@@ -61,12 +62,15 @@ bool Bat::render()
         rendered = !checkDownTime();
     }
 
-    if (!isDied()) {
-        //go in screen
-        if (mPosX + getWidth() > SCREEN_WIDTH - 50) {
-            mPosX -= batSpeed;
-        }
+    if (mPosX <= 0) {
+        rendered = false;
     }
+//    if (!isDied()) {
+        //go in screen
+//        if (mPosX + getWidth() > SCREEN_WIDTH - 50) {
+//            mPosX -= batSpeed;
+//        }
+//    }
 
     return rendered;
 }

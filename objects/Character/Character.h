@@ -59,6 +59,7 @@ protected:
     Character(int x, int y, CHARACTER_TYPE character);
     ~Character();
 
+
     void initCharacter(int x, int y);
 
     //use when have gravitation
@@ -67,6 +68,7 @@ protected:
     void onDied();
     bool renderCharacter();
 
+    void setAlpha(Uint8 alpha);
     void setVelX(int value);
     void setVelY(int value);
     void setVelAngle(double value);
@@ -343,6 +345,14 @@ bool Character::renderCharacter() {
     return rendered;
 }
 
+void Character::setAlpha(Uint8 alpha)
+{
+    for (int img = 0; img < imgCount; img++) {
+        sTexture[img].setAlpha(alpha);
+    }
+}
+
+
 void Character::setVelX(int value)
 {
     mVelX = value;
@@ -372,4 +382,5 @@ void Character::addVelAngle(double value)
 {
     mVelAngle += value;
 }
+
 #endif

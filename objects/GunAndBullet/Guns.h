@@ -11,11 +11,11 @@
 const int gunPosX = 5;
 const int gunPosY = groundPosY + 10;
 
-const int typePosX = 25;
-const int typePosY = 50;
+const int typePosX = 10;
+const int typePosY = 90;
 
-const int bulletTextPosX = 25;
-const int bulletTextPosY = 80;
+const int bulletTextPosX = 10;
+const int bulletTextPosY = 120;
 
 enum GUN_TYPE
 {
@@ -130,6 +130,9 @@ void Guns::init()
     mouseHold = false;
     reloadingEndTime = -1;
     explosionEffect.init();
+
+    curTime = 0;
+    curTimeRestoreAim = 0;
 
     currentGun = PISTOL;
     mTexture = &sTexture[currentGun];

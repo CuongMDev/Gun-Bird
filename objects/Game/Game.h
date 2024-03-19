@@ -25,7 +25,8 @@ private:
     void checkColisionBirdAndEnemyBullet();
     void checkColisionBirdAndPipe();
     void checkColisionPipeAndPlayerBullet();
-    void checkColisionObjectsBatAndPipe();
+    void checkColisionObjectsBirdAndBat();
+    void checkGameOver();
 
 public:
     Game();
@@ -120,6 +121,7 @@ void Game::handleGameOverButtonClicked(BUTTON buttonClicked)
 void Game::render()
 {
     checkColisionObjects();
+    checkGameOver();
 
     background->render();
     ground->render();
@@ -139,7 +141,7 @@ void Game::checkColisionObjects()
     checkColisionBirdAndEnemyBullet();
     checkColisionBirdAndPipe();
     checkColisionPipeAndPlayerBullet();
-    //checkColisionObjectsBatAndPipe();
+    checkColisionObjectsBirdAndBat();
 }
 
 void Game::checkColisionBirdAndEnemyBullet()
@@ -153,15 +155,18 @@ void Game::checkColisionBirdAndEnemyBullet()
         Bat *bat = dynamic_cast<Bat*>(*objectA);
 
         if (!bat->isDied()) {
-            bulletList.deleteObject(objectB);
+            objectB = bulletList.deleteObject(objectB);
             bat->decreaseHealth();
             if (bat->isDied()) {
+                //next bat
+                objectA++;
+                objectB = bulletList.getBegin();
                 point->addPoint();
             }
         }
         else {
             //next bat
-            objectB++;
+            objectA++;
         }
 
         continueToFind = true;
@@ -172,8 +177,7 @@ void Game::checkColisionBirdAndPipe()
 {
     std::_List_iterator<Object *> object;
     if (pipeList->getCollisionObject(*mainBird, object)) {
-        GameOver::onGameOver();
-        handleGameOver();
+        mainBird->changeHealth(-30);
     }
 }
 
@@ -186,9 +190,23 @@ void Game::checkColisionPipeAndPlayerBullet()
     }
 }
 
-void Game::checkColisionObjectsBatAndPipe()
+void Game::checkColisionObjectsBirdAndBat()
 {
+    std::_List_iterator<Object *> object;
+    if (batList->getCollisionObject(*mainBird, object)) {
+        mainBird->changeHealth(-30);
+    }
+}
 
+void Game::checkGameOver()
+{
+    if (GameOver::gameIsOver()) {
+        return;
+    }
+    if (mainBird->getCurrentHealth() == 0) {
+        GameOver::onGameOver();
+        handleGameOver();
+    }
 }
 
 #endif

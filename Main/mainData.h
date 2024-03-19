@@ -25,6 +25,7 @@ const std::string imagePath = "image/";
     const std::string cursorMouseImagePath = imagePath + "CursorMouse/";
     const std::string gameOverImagePath = imagePath + "GameOver/";
     const std::string gunImagePath = imagePath + "Gun/";
+    const std::string healthBarImagePath = imagePath + "HealthBar/";
     const std::string iconImagePath = imagePath + "Icon/";
     const std::string sceneImagePath = imagePath + "Scene/";
 

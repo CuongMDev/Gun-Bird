@@ -23,7 +23,9 @@ public:
 
     bool getCollisionObjects(ObjectsList& objectsList, listIter &objectA, listIter &objectB, bool continueToFind = false);
     bool getCollisionObject(const Object& objectB, listIter &object, bool continueToFind = false);
-    void deleteObject(const listIter &object);
+    //return next object
+    listIter deleteObject(const listIter &object);
+    listIter getBegin();
 };
 
 ObjectsList::ObjectsList()
@@ -68,6 +70,7 @@ bool ObjectsList::getCollisionObject(const Object &objectB, listIter &object, bo
     listIter obj;
     if (continueToFind) obj = object;
     else obj = objectList.begin();
+
     for (; obj != objectList.end(); obj++) {
         if ((*obj)->checkCollisionObject(objectB)) {
             object = obj;
@@ -82,13 +85,14 @@ bool ObjectsList::getCollisionObjects(ObjectsList &objectsListB, listIter &objec
 {
     listIter objA, objB;
     if (continueToFind) {
+        objA = objectA;
         objB = objectB;
     }
     else {
         objB = objectsListB.objectList.begin();
     }
     for (; objB != objectsListB.objectList.end(); objB++) {
-        if (this->getCollisionObject(**objB, objA)) {
+        if (this->getCollisionObject(**objB, objA, continueToFind)) {
             objectA = objA;
             objectB = objB;
             return true;
@@ -99,9 +103,14 @@ bool ObjectsList::getCollisionObjects(ObjectsList &objectsListB, listIter &objec
     return false;
 }
 
-void ObjectsList::deleteObject(const listIter &object)
+listIter ObjectsList::deleteObject(const listIter &object)
 {
-    objectList.erase(object);
+    return objectList.erase(object);
+}
+
+listIter ObjectsList::getBegin()
+{
+    return objectList.begin();
 }
 
 #endif //OBJECTSLIST_H
