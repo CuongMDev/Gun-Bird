@@ -17,6 +17,7 @@ private:
     static Uint32 nextCreatedTime;
 
     static bool onAdd;
+    HealthBar *health;
     int downTime;
 
     bool checkDownTime();
@@ -31,7 +32,7 @@ public:
 
     void init(int x, int y);
 
-    void decreaseHealth();
+    void decreaseHealth(int value);
     bool render() override;
 };
 
@@ -51,7 +52,8 @@ void Bat::init(int x, int y)
 {
     downTime = -1;
     initCharacter(x, y);
-    setVelX(-15);
+    setVelX(-10);
+    health = new HealthBar(0, 0, true, 12);
 }
 
 bool Bat::render()
@@ -65,12 +67,14 @@ bool Bat::render()
     if (mPosX <= 0) {
         rendered = false;
     }
-//    if (!isDied()) {
+    if (!isDied()) {
+        health->updatePos(mPosX + getWidth() / 2, mPosY - 10);
+        health->render();
         //go in screen
 //        if (mPosX + getWidth() > SCREEN_WIDTH - 50) {
 //            mPosX -= batSpeed;
 //        }
-//    }
+    }
 
     return rendered;
 }
@@ -104,9 +108,13 @@ void Bat::spawnBat(ObjectsList *batList)
     }
 }
 
-void Bat::decreaseHealth()
+void Bat::decreaseHealth(int value)
 {
-    onDied();
+    health->changeHealth(-value);
+    if (health->getCurrentHealth() == 0) {
+        onDied();
+        return;
+    }
 }
 
 void Bat::renderAll(ObjectsList *batList)

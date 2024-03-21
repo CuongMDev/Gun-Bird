@@ -33,6 +33,7 @@ public:
 
     void init(int x, int y, bool inEnemySide, int maxHP);
 
+    void updatePos(int x, int y);
     void setHealth(int value);
     void changeHealth(int value);
     bool render() override;
@@ -56,9 +57,15 @@ void HealthBar::init(int x, int y, bool inEnemySide, int maxHP)
     mPosX = x;
     mPosY = y;
     mInEnemySide = inEnemySide;
-    mMaxHP = mCurrentHP = 100;
+    mMaxHP = mCurrentHP = maxHP;
 
     mTexture = &sTexture[HEALTH_BAR_STATE_PLAYER];
+}
+
+void HealthBar::updatePos(int x, int y)
+{
+    mPosX = x - getWidth() / 2;
+    mPosY = y;
 }
 
 void HealthBar::setHealth(int value)
@@ -100,7 +107,7 @@ bool HealthBar::render()
         sTexture[HEALTH_BAR_STATE_PLAYER].render(mPosX + HPWidth, mPosY + HPHeight, &clip);
     }
     else {
-        sTexture[HEALTH_BAR_STATE_ENEMY].render(mPosX, mPosY, &clip);
+        sTexture[HEALTH_BAR_STATE_ENEMY].render(mPosX, mPosY, &clip, 0, NULL, SDL_FLIP_NONE, -70);
     }
 
     return true;

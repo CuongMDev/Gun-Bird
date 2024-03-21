@@ -5,6 +5,7 @@
 #include "../CursorMouse/CursorMouse.h"
 #include "ExplosionEffect.h"
 #include "../Other/Font.h"
+#include "GunItem.h"
 #include <cmath>
 #include <list>
 
@@ -17,36 +18,9 @@ const int typePosY = 90;
 const int bulletTextPosX = 10;
 const int bulletTextPosY = 120;
 
-enum GUN_TYPE
-{
-    PISTOL,
-    SILENT_PISTOL,
-    GOLD_PISTOL,
-    AK47,
-    SNIPER,
-
-    GUN_COUNT
-};
-
-struct GunProperties
-{
-    int damage;
-    int timeRestoreAim;
-    int recoil;
-    int maxVelRecoil;
-    int shootDelay;
-    int bulletInTape;
-
-    BULLET_TYPE bulletType;
-
-    std::string imageName;
-};
-
-class Guns : private Object
+class Guns : private GunItem
 {
 private:
-    static const GunProperties gunProperties[GUN_COUNT];
-    static LTexture sTexture[GUN_COUNT];
     static const int reloadingTime;
 
     LTexture bulletLabel;
@@ -55,7 +29,6 @@ private:
     int bulletLeft[GUN_COUNT];
 
     ObjectsList bulletsList;
-    GUN_TYPE currentGun;
 
     ExplosionEffect explosionEffect;
 
@@ -74,7 +47,6 @@ private:
 
     bool mouseHold;
 
-    void loadGunIMG();
     void turnTowards(int mouseX, int mouseY);
     void updateAngle();
     void addBullet();
@@ -96,20 +68,12 @@ public:
     void setPosAndAngle(int x, int y);
     void changeGun(GUN_TYPE gunType);
     void reload();
+    void addBulletCount(GUN_TYPE gunType, int bulletCount);
 };
 
-const GunProperties Guns::gunProperties[] = {
-        {3, 17, 1, 3, 15, 7, PISTOL_BULLET, "pistol.png"}, //pistol
-        {3, 17, 1, 3, 10, 7, PISTOL_BULLET, "silentpistol.png"}, //silent pistol
-        {7, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, "goldpistol.png"}, //gold pistol
-        {5, 7, 1, 7, 5, 30,AK47_BULLET, "ak47.png"}, //AK47
-        {12, 30, 20, 20, 30, 5, SNIPER_BULLET, "sniper.png"}, //Sniper
-};
 const int Guns::reloadingTime = 2000;
 
-LTexture Guns::sTexture[];
-
-Guns::Guns() : Object(false)
+Guns::Guns()
 {
     loadGunIMG();
     init();
@@ -147,14 +111,6 @@ void Guns::init()
     bulletsList.reset();
 }
 
-void Guns::loadGunIMG()
-{
-    //image: https://midnitepixelated.itch.io/pixel-guns
-    for (auto gunType = 0; gunType < GUN_COUNT; gunType++) {
-        sTexture[gunType].loadFromFile(gunImagePath + gunProperties[gunType].imageName, true, 67, 76, 111);
-    }
-}
-
 void Guns::turnTowards(int mouseX, int mouseY)
 {
     double dx = mouseX - mPosX;
@@ -178,7 +134,7 @@ void Guns::addBullet()
 
     //Adjust the bullet to fit into the barrel of the gun
     explosionEffect.start(x, y - 10, mAngle);
-    bulletsList.add(new Bullets(x, y - 5, mAngle, gunProperties[currentGun].bulletType));
+    bulletsList.add(new Bullets(x, y - 5, mAngle, gunProperties[currentGun].bulletType, gunProperties[currentGun].damage));
 
     curBullet[currentGun]--;
     updateBulletText();
@@ -389,6 +345,12 @@ void Guns::reload()
     if (reloadingEndTime == -1) {
         reloadingEndTime = SDL_GetTicks() + reloadingTime;
     }
+}
+
+void Guns::addBulletCount(GUN_TYPE gunType, int bulletCount)
+{
+    bulletLeft[gunType] += bulletCount;
+    updateBulletText();
 }
 
 #endif

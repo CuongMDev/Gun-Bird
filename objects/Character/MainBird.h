@@ -41,6 +41,7 @@ public:
     void handleKey(const Uint8 *currentKeyStates);
     bool render() override;
     void changeHealth(int value);
+    void addBulletCount(GUN_TYPE gunType, int bulletCount);
 
     int getCurrentHealth() const;
 
@@ -186,6 +187,11 @@ void MainBird::changeHealth(int value)
     if (value < 0) {
         setInvisible(true);
     }
+}
+
+void MainBird::addBulletCount(GUN_TYPE gunType, int bulletCount)
+{
+    gun.addBulletCount(gunType, bulletCount);
 }
 
 int MainBird::getCurrentHealth() const

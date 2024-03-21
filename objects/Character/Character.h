@@ -231,9 +231,10 @@ bool Character::dyingRender()
     //start falling
     decreaseVelAndAngle();
 
-    if (mVelX > -gVelocityYScene && isStayingOnGround()) {
-        //Velocity X decreases until equal Scene Velocity
-        mVelX--;
+    if (mVelX != -gVelocityYScene && isStayingOnGround()) {
+        //Velocity X changes until equal Scene Velocity
+        if (mVelX > -gVelocityYScene) mVelX--;
+        else mVelX++;
     }
 
     bool moved = move();

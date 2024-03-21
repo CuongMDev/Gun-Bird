@@ -34,6 +34,7 @@ private:
 
     BULLET_TYPE currentBullet;
 
+    int mDamage;
     //The velocity
     int mVelX, mVelY;
     //Angle
@@ -45,12 +46,13 @@ private:
     void loadIMG();
 
 protected:
-    void init(int x, int y, double angle, BULLET_TYPE bulletType);
+    void init(int x, int y, double angle, BULLET_TYPE bulletType, int damage);
 
 public:
-    Bullets(int x, int y, double angle, BULLET_TYPE bulletType);
+    Bullets(int x, int y, double angle, BULLET_TYPE bulletType, int damage);
     ~Bullets();
 
+    int getDamage();
     bool render() override;
 };
 
@@ -63,19 +65,21 @@ const BulletProperties Bullets::bulletProperties[] = {
 
 LTexture Bullets::sTexture[];
 
-Bullets::Bullets(int x, int y, double angle, BULLET_TYPE bulletType) : Object(false)
+Bullets::Bullets(int x, int y, double angle, BULLET_TYPE bulletType, int damage) : Object(false)
 {
     loadIMG();
-    init(x, y, angle, bulletType);
+    init(x, y, angle, bulletType, damage);
 }
 
 Bullets::~Bullets()
 =default;
 
-void Bullets::init(int x, int y, double angle, BULLET_TYPE bulletType)
+void Bullets::init(int x, int y, double angle, BULLET_TYPE bulletType, int damage)
 {
     mPosX = x;
     mPosY = y;
+
+    mDamage = damage;
 
     currentBullet = bulletType;
     mTexture = &sTexture[currentBullet];
@@ -120,6 +124,11 @@ bool Bullets::move()
 
     if (checkOutTheBorder()) return false;
     return true;
+}
+
+int Bullets::getDamage()
+{
+    return mDamage;
 }
 
 bool Bullets::render()

@@ -16,6 +16,7 @@ private:
     ObjectsList *pipeList;
     Point *point;
     CursorMouse* cursorMouse;
+    GunItem *gunItem;
 
     void handleGameOver();
     void resetGame();
@@ -26,6 +27,7 @@ private:
     void checkColisionBirdAndPipe();
     void checkColisionPipeAndPlayerBullet();
     void checkColisionObjectsBirdAndBat();
+    void checkColisionObjectsBirdAndItems();
     void checkGameOver();
 
 public:
@@ -48,6 +50,7 @@ Game::Game()
     pipeList = new ObjectsList();
     point = new Point;
     cursorMouse = new CursorMouse();
+    gunItem = new GunItem();
     resetGame();
 }
 
@@ -61,6 +64,7 @@ Game::~Game()
     delete pipeList;
     delete point;
     delete cursorMouse;
+    delete gunItem;
 }
 
 void Game::handleGameOver()
@@ -80,6 +84,7 @@ void Game::resetGame()
     Bat::resetTime();
 
     point->init();
+    gunItem->init();
 
     gVelocityYScene = gInitVelocityYScene;
 
@@ -131,6 +136,7 @@ void Game::render()
     if (!mainBird->render()) {
         gameOver->render();
     }
+    gunItem->render();
 }
 
 void Game::checkColisionObjects()
@@ -142,6 +148,7 @@ void Game::checkColisionObjects()
     checkColisionBirdAndPipe();
     checkColisionPipeAndPlayerBullet();
     checkColisionObjectsBirdAndBat();
+    checkColisionObjectsBirdAndItems();
 }
 
 void Game::checkColisionBirdAndEnemyBullet()
@@ -155,8 +162,11 @@ void Game::checkColisionBirdAndEnemyBullet()
         Bat *bat = dynamic_cast<Bat*>(*objectA);
 
         if (!bat->isDied()) {
+            Bullets *bullet = dynamic_cast<Bullets*>(*objectB);
+            bat->decreaseHealth(bullet->getDamage());
+
+            //delete bullet;
             objectB = bulletList.deleteObject(objectB);
-            bat->decreaseHealth();
             if (bat->isDied()) {
                 //next bat
                 objectA++;
@@ -193,10 +203,30 @@ void Game::checkColisionPipeAndPlayerBullet()
 void Game::checkColisionObjectsBirdAndBat()
 {
     std::_List_iterator<Object *> object;
-    if (batList->getCollisionObject(*mainBird, object)) {
-        mainBird->changeHealth(-30);
+    bool continueToFind = false;
+
+    //find live bat
+    while (batList->getCollisionObject(*mainBird, object, continueToFind)) {
+        Bat *bat = dynamic_cast<Bat*>(*object);
+        if (!bat->isDied()) {
+            mainBird->changeHealth(-30);
+            break;
+        }
+        //next bat
+        object++;
+
+        continueToFind = true;
     }
 }
+
+void Game::checkColisionObjectsBirdAndItems()
+{
+    if (mainBird->checkCollisionObject(*gunItem)) {
+        mainBird->addBulletCount(gunItem->getCurrentGunType(), 30);
+        gunItem->init();
+    }
+}
+
 
 void Game::checkGameOver()
 {
