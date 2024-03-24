@@ -2,13 +2,17 @@
 #define UTILS_H
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
+#include <numeric>
+#include <vector>
 
 double distance(const int &p1X, const int &p1Y, const int &p2X, const int &p2Y);
 int getRandomNumber(const int &l, const int &r);
 bool checkCollision(const int &p1X, const int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H);
 void setPosToBorderPos(int &p1X, int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H);
 void calculateVelocityToMouse(int &x, int &y, double speed);
+template<typename T>
+T getRandomWithPercent(const std::vector<int> &percent, const std::vector<T> &type);
 
 double distance(const int &p1X, const int &p1Y, const int &p2X, const int &p2Y)
 {
@@ -58,6 +62,30 @@ void calculateVelocityToMouse(int &x, int &y, double speed)
     // Scale direction vector by speed to get velocity vector
     x = (dx * speed) + trunc(2 * (double)(SCREEN_HEIGHT - mouseY) / SCREEN_HEIGHT);
     y = dy * speed;
+}
+
+template<typename T>
+T getRandomWithPercent(const std::vector<int> &percent, const std::vector<T> &type) {
+    // Check if the vectors have the same size
+    if (percent.size() != type.size()) {
+        printf("Error: Vectors must have equal size");
+        return 0;
+    }
+
+
+    int sum = std::accumulate(percent.begin(), percent.end(), 0);
+    int randomNumber = getRandomNumber(1, sum);
+
+    int preSum = 0,
+            percentSize = (int)percent.size();
+    for (int i = 0; i < percentSize; i++) {
+        preSum += percent[i];
+        if (randomNumber <= preSum) {
+            return type[i];
+        }
+    }
+
+    return type[0];
 }
 
 #endif

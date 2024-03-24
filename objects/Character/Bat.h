@@ -8,15 +8,14 @@ class Bat : public Character
 {
 private:
     static const int batPosX = SCREEN_WIDTH;
-    const int batSpeed = 1;
+    const int batSpeed = gVelocityYScene + 5;
     const int batTimeBeforeBeingDeleted = 1000;
     //random time interval after nextCreatedTime
     static const std::pair<int, int> randomTimeInterval;
     static const std::pair<int, int> randomHeightInterval;
-    //pipe will be created when current time = this
+    //bat will be created when current time = this
     static Uint32 nextCreatedTime;
 
-    static bool onAdd;
     HealthBar *health;
     int downTime;
 
@@ -52,7 +51,7 @@ void Bat::init(int x, int y)
 {
     downTime = -1;
     initCharacter(x, y);
-    setVelX(-10);
+    setVelX(-batSpeed);
     health = new HealthBar(0, 0, true, 12);
 }
 
@@ -78,8 +77,6 @@ bool Bat::render()
 
     return rendered;
 }
-
-bool Bat::onAdd = false;
 
 bool Bat::checkDownTime()
 {

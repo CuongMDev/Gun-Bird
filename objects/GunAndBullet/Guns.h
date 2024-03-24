@@ -56,6 +56,7 @@ private:
     //check and shoot
     void shoot();
     void checkReloading();
+    void cancelReloading();
 
 public:
     Guns();
@@ -68,7 +69,7 @@ public:
     void setPosAndAngle(int x, int y);
     void changeGun(GUN_TYPE gunType);
     void reload();
-    void addBulletCount(GUN_TYPE gunType, int bulletCount);
+    void addBulletCount(GUN_TYPE gunType, int bulletMagazine);
 };
 
 const int Guns::reloadingTime = 2000;
@@ -92,7 +93,7 @@ void Guns::init()
     mAngle = 0;
     mVelRecoil = 0;
     mouseHold = false;
-    reloadingEndTime = -1;
+    cancelReloading();
     explosionEffect.init();
 
     curTime = 0;
@@ -229,6 +230,11 @@ void Guns::shoot()
     }
 }
 
+void Guns::cancelReloading()
+{
+    reloadingEndTime = -1;
+}
+
 void Guns::checkReloading()
 {
     if (reloadingEndTime == -1) {
@@ -240,7 +246,7 @@ void Guns::checkReloading()
 
 //------------------------------------------------
     //reset
-    reloadingEndTime = -1;
+    cancelReloading();
 
     //starting reloading
     if (bulletLeft[currentGun] == -1) {
@@ -273,6 +279,9 @@ void Guns::handleEvent(SDL_Event *e)
                 changeGun(AK47);
                 break;
             case SDLK_5:
+                changeGun(WIN94);
+                break;
+            case SDLK_6:
                 changeGun(SNIPER);
                 break;
 
@@ -330,6 +339,7 @@ void Guns::setPosAndAngle(int x, int y)
 
 void Guns::changeGun(GUN_TYPE gunType)
 {
+    cancelReloading();
     currentGun = gunType;
     mTexture = &sTexture[currentGun];
 
@@ -347,9 +357,9 @@ void Guns::reload()
     }
 }
 
-void Guns::addBulletCount(GUN_TYPE gunType, int bulletCount)
+void Guns::addBulletCount(GUN_TYPE gunType, int bulletMagazine)
 {
-    bulletLeft[gunType] += bulletCount;
+    bulletLeft[gunType] += bulletMagazine * gunProperties[gunType].bulletInTape;
     updateBulletText();
 }
 

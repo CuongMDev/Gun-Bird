@@ -8,6 +8,7 @@ enum CHARACTER_TYPE
 {
     MAIN_BIRD,
     BAT,
+    BOSS,
 
     CHARACTER_COUNT
 };
@@ -21,7 +22,7 @@ enum DIRECTION
 class Character : public Object
 {
 private:
-    LTexture sTexture[4];
+    std::vector<LTexture> sTexture;
 
     CHARACTER_TYPE mCharacterType;
     DIRECTION direction;
@@ -84,8 +85,8 @@ Character::Character(int x, int y, CHARACTER_TYPE character) : Object(false)
 {
     mCharacterType = character;
 
-    initCharacter(x, y);
     loadIMG();
+    initCharacter(x, y);
 }
 
 Character::~Character()
@@ -152,28 +153,42 @@ void Character::loadIMG()
     switch (mCharacterType) {
         //image: https://flappybird.io/
         case MAIN_BIRD:
+            imgCount = 4;
+            sTexture.resize(imgCount);
+
             sTexture[0].loadFromFile(mainBirdImagePath + "mainBird0.png", true, 124, 197, 205);
             sTexture[1].loadFromFile(mainBirdImagePath + "mainBird1.png", true, 124, 197, 205);
             sTexture[2].loadFromFile(mainBirdImagePath + "mainBird2.png", true, 124, 197, 205);
             sTexture[3] = sTexture[1];
-            imgCount = 4;
 
             direction = RIGHT;
             initImgChangeVelWhenAir = 2;
 
             break;
-        //image: https://opengameart.org/content/bat-rework
+            //image: https://opengameart.org/content/bat-rework
         case BAT:
-            sTexture[0].loadFromFile(batImagePath + "bat0.png", true, 34,177,76);
-            sTexture[1].loadFromFile(batImagePath + "bat1.png", true, 34,177,76);
-            sTexture[2].loadFromFile(batImagePath + "bat2.png", true, 34,177,76);
-            sTexture[3] = sTexture[1];
             imgCount = 4;
+            sTexture.resize(imgCount);
+
+            sTexture[0].loadFromFile(batImagePath + "bat0.png", true, 34, 177, 76);
+            sTexture[1].loadFromFile(batImagePath + "bat1.png", true, 34, 177, 76);
+            sTexture[2].loadFromFile(batImagePath + "bat2.png", true, 34, 177, 76);
+            sTexture[3] = sTexture[1];
 
             direction = LEFT;
             initImgChangeVelWhenAir = 6;
 
             break;
+
+        case BOSS:
+            imgCount = 6;
+            sTexture.resize(imgCount);
+            for (int i = 0; i < imgCount; i++) {
+                sTexture[i].loadFromFile(dragonImagePath + "dragon" + std::to_string(i) + ".png", true, 34,177,76);
+            }
+
+            direction = LEFT;
+            initImgChangeVelWhenAir = 5;
         default:
             break;
     }

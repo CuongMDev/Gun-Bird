@@ -101,13 +101,13 @@ void MainBird::handleKey(const Uint8 *currentKeyStates)
         return;
     }
 
+    setVelX(0);
+    if (currentKeyStates[SDL_SCANCODE_D]) {
+        setVelX(5);
+    }
     if (currentKeyStates[SDL_SCANCODE_A]) {
         setVelX(-5);
     }
-    else if (currentKeyStates[SDL_SCANCODE_D]) {
-        setVelX(5);
-    }
-    else setVelX(0);
 }
 
 void MainBird::setInvisible(bool state)

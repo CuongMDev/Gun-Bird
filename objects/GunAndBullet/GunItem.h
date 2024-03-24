@@ -7,6 +7,7 @@ enum GUN_TYPE
     SILENT_PISTOL,
     GOLD_PISTOL,
     AK47,
+    WIN94,
     SNIPER,
 
     GUN_COUNT
@@ -29,6 +30,8 @@ struct GunProperties
 class GunItem : public Object
 {
 private:
+    const std::vector<int> magazinePercent = {57, 30, 10, 3};
+
     static LTexture circleTexture;
 
     void setRandomTime(Uint32 time);
@@ -36,6 +39,7 @@ private:
     int randomTime;
     int mVelX;
 
+    int currentMagazineCount;
     bool isRendering;
 
     bool move();
@@ -55,13 +59,15 @@ public:
 
     void randomGun();
     GUN_TYPE getCurrentGunType();
+    int getCurrentMagazineCount() const;
 };
 
 const GunProperties GunItem::gunProperties[] = {
         {3, 17, 1, 3, 15, 7, PISTOL_BULLET, "pistol.png"}, //pistol
-        {3, 17, 1, 3, 10, 7, PISTOL_BULLET, "silentpistol.png"}, //silent pistol
+        {3, 17, 1, 3, 10, 30, PISTOL_BULLET, "silentpistol.png"}, //silent pistol
         {20, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, "goldpistol.png"}, //gold pistol
         {5, 7, 1, 7, 5, 30,AK47_BULLET, "ak47.png"}, //AK47
+        {7, 20, 10, 20, 20, 8,WIN94_BULLET, "win94.png"}, //Win94
         {12, 30, 20, 20, 30, 5, SNIPER_BULLET, "sniper.png"}, //Sniper
 };
 
@@ -107,7 +113,9 @@ void GunItem::randomGun()
     currentGun = static_cast<GUN_TYPE>(getRandomNumber(PISTOL + 1, GUN_COUNT - 1));
     mTexture = &sTexture[currentGun];
     mPosX = SCREEN_WIDTH;
-    mPosY = getRandomNumber(0, groundPosY - circleTexture.getWidth());
+    mPosY = getRandomNumber(circleTexture.getWidth() / 2, groundPosY - circleTexture.getWidth() / 2);
+
+    currentMagazineCount = getRandomWithPercent<int>(magazinePercent, {1, 2, 3, 4});
 }
 
 GunItem::GunItem() : Object(false)
@@ -123,6 +131,8 @@ void GunItem::init()
     //to avoid collision with bird
     mPosX = SCREEN_WIDTH + 1;
     mPosY = 0;
+
+    currentMagazineCount = 0;
     isRendering = false;
     //to avoid error when get dimension
     mTexture = &sTexture[PISTOL];
@@ -144,8 +154,8 @@ bool GunItem::render()
     }
 
     if (isRendering) {
-        circleTexture.render(mPosX, mPosY);
-        mTexture->render(mPosX + circleTexture.getWidth() / 2 - mTexture->getWidth() / 2, mPosY + circleTexture.getHeight() / 2 - mTexture->getHeight() / 2);
+        circleTexture.render(mPosX + mTexture->getWidth() / 2 - circleTexture.getWidth() / 2, mPosY + mTexture->getHeight() / 2 - circleTexture.getHeight() / 2);
+        mTexture->render(mPosX, mPosY);
         return true;
     }
     return false;
@@ -154,6 +164,11 @@ bool GunItem::render()
 GUN_TYPE GunItem::getCurrentGunType()
 {
     return currentGun;
+}
+
+int GunItem::getCurrentMagazineCount() const
+{
+    return currentMagazineCount;
 }
 
 #endif //GUNITEM_H

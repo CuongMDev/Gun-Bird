@@ -12,6 +12,7 @@ private:
     Ground *ground;
     MainBird *mainBird;
     ObjectsList *batList;
+    //Boss *boss;
     GameOver *gameOver;
     ObjectsList *pipeList;
     Point *point;
@@ -46,6 +47,7 @@ Game::Game()
     ground = new Ground(groundPosX, groundPosY);
     mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
     batList = new ObjectsList();
+    //boss = new Boss();
     gameOver = new GameOver();
     pipeList = new ObjectsList();
     point = new Point;
@@ -132,11 +134,12 @@ void Game::render()
     ground->render();
     Pipe::renderAll(pipeList);
     point->render();
+    gunItem->render();
     Bat::renderAll(batList);
+    //boss->render();
     if (!mainBird->render()) {
         gameOver->render();
     }
-    gunItem->render();
 }
 
 void Game::checkColisionObjects()
@@ -222,7 +225,7 @@ void Game::checkColisionObjectsBirdAndBat()
 void Game::checkColisionObjectsBirdAndItems()
 {
     if (mainBird->checkCollisionObject(*gunItem)) {
-        mainBird->addBulletCount(gunItem->getCurrentGunType(), 30);
+        mainBird->addBulletCount(gunItem->getCurrentGunType(), gunItem->getCurrentMagazineCount());
         gunItem->init();
     }
 }

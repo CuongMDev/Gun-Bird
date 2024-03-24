@@ -14,6 +14,7 @@ enum BULLET_TYPE
     PISTOL_BULLET,
     GOLD_PISTOL_BULLET,
     AK47_BULLET,
+    WIN94_BULLET,
     SNIPER_BULLET,
 
     BULLET_COUNT
@@ -58,8 +59,9 @@ public:
 
 const BulletProperties Bullets::bulletProperties[] = {
         {17, "pistol.png"}, //pistol
-        {30, "goldpistol.png"}, //gold pistol
+        {33, "goldpistol.png"}, //gold pistol
         {20, "ak47.png"}, //AK47
+        {30, "win94.png"}, //Win94
         {50, "sniper.png"}, //Sniper
 };
 
