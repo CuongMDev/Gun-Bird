@@ -7,7 +7,6 @@ class Object
 {
 private:
     bool initialized;
-    bool paused;
 protected:
     LTexture *mTexture;
 
@@ -36,7 +35,6 @@ Object::Object(bool init)
     if (init) {
         mTexture = new LTexture();
     }
-    paused = false;
 }
 
 Object::~Object()

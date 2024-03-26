@@ -106,6 +106,7 @@ void Game::changeGamePaused()
         pausedTime += SDL_GetTicks() - startPauseTime;
         startPauseTime = -1;
     }
+
 }
 
 void Game::handleEvent(SDL_Event *e)

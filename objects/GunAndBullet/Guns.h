@@ -319,10 +319,7 @@ void Guns::handleEvent(SDL_Event *e)
         }
     }
 
-    if (e->type == SDL_MOUSEMOTION) {
-        updateAngle();
-    }
-    else if (e->type == SDL_MOUSEBUTTONDOWN) {
+    if (e->type == SDL_MOUSEBUTTONDOWN) {
         if (e->button.button == SDL_BUTTON_LEFT) {
             //left mouse
             mouseHold = true;
@@ -338,7 +335,9 @@ void Guns::handleEvent(SDL_Event *e)
 
 bool Guns::updateState()
 {
+    updateAngle();
     checkReloading();
+    shoot();
 
     return true;
 }
@@ -350,7 +349,6 @@ void Guns::renderTogRenderer()
     //show bullet
     bulletLabel.render(bulletTextPosX, bulletTextPosY);
 
-    shoot();
     bulletsList.renderAll();
 
     SDL_Point center{ pivotX, pivotY };
@@ -362,7 +360,6 @@ void Guns::setPosAndAngle(int x, int y)
 {
     mPosX = x;
     mPosY = y;
-    updateAngle();
 }
 
 void Guns::changeGun(GUN_TYPE gunType)
