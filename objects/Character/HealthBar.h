@@ -26,6 +26,7 @@ private:
     int mCurrentHP;
 
     void loadIMG();
+    void renderTogRenderer() override;
 
 public:
     HealthBar(int x, int y, bool inEnemySide, int maxHP);
@@ -36,7 +37,6 @@ public:
     void updatePos(int x, int y);
     void setHealth(int value);
     void changeHealth(int value);
-    bool render() override;
 
     int getCurrentHealth() const;
 };
@@ -96,7 +96,7 @@ void HealthBar::loadIMG()
     sTexture[HEALTH_BAR_STATE_ENEMY].loadFromFile(healthBarImagePath + "healthbarstateEnemy.png");
 }
 
-bool HealthBar::render()
+void HealthBar::renderTogRenderer()
 {
     int barLength = (getWidth() * mCurrentHP + mMaxHP - 1) / mMaxHP;
     SDL_Rect clip;
@@ -109,8 +109,6 @@ bool HealthBar::render()
     else {
         sTexture[HEALTH_BAR_STATE_ENEMY].render(mPosX, mPosY, &clip, 0, NULL, SDL_FLIP_NONE, -70);
     }
-
-    return true;
 }
 
 int HealthBar::getCurrentHealth() const

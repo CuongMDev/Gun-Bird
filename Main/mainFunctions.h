@@ -22,6 +22,7 @@ bool init()
 {
     bool success = initWindow();
     loadFont();
+    cursorMouse = new CursorMouse();
 
     //take random over time
     srand(time(0));
@@ -55,6 +56,7 @@ bool initWindow()
     if (!loadIcon()) {
         printf("SDL could not load icon! SDL Error: %s\n", SDL_GetError());
     }
+
     //Create vsynced renderer for window
     gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (gRenderer == NULL) {

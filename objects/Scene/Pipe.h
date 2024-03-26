@@ -22,6 +22,9 @@ private:
     bool checkOutTheBorder();
     void init(int height, bool flip);
     void loadIMG();
+
+    bool updateState() override;
+    void renderTogRenderer() override;
 public:
     Pipe(int height, bool flip);
     ~Pipe();
@@ -31,8 +34,6 @@ public:
     static void resetTime();
 
     int getHeight() const override;
-
-    bool render() override;
 };
 
 const std::pair<int, int> Pipe::randomTimeInterval = {1000, 3000};
@@ -50,7 +51,7 @@ Pipe::~Pipe()
 
 void Pipe::spawnPipe(ObjectsList *pipeList)
 {
-    if (SDL_GetTicks() >= nextCreatedTime) {
+    if (getCurrentTime() >= nextCreatedTime) {
         //random flip
         bool flip = getRandomNumber(0, 1);
         //pipe height
@@ -60,7 +61,7 @@ void Pipe::spawnPipe(ObjectsList *pipeList)
         pipeList->add(pipe);
 
         //reset created time
-        nextCreatedTime = SDL_GetTicks() + getRandomNumber(randomTimeInterval.first, randomTimeInterval.second);
+        nextCreatedTime = getCurrentTime() + getRandomNumber(randomTimeInterval.first, randomTimeInterval.second);
     }
 }
 
@@ -75,7 +76,7 @@ void Pipe::renderAll(ObjectsList *pipeList)
 
 void Pipe::resetTime()
 {
-    nextCreatedTime = SDL_GetTicks() + waitTimeBeforePlaying;
+    nextCreatedTime = getCurrentTime() + waitTimeBeforePlaying;
 }
 
 bool Pipe::checkOutTheBorder()
@@ -111,18 +112,22 @@ int Pipe::getHeight() const
     return mHeight;
 }
 
-bool Pipe::render()
+bool Pipe::updateState()
 {
     mPosX -= gVelocityYScene;
     if (checkOutTheBorder()) {
         return false;
     }
 
+    return true;
+}
+
+void Pipe::renderTogRenderer()
+{
     SDL_Rect rect;
     rect.x = 0, rect.y = 0;
     rect.h = mHeight, rect.w = getWidth();
     mTexture->render(mPosX, mPosY, &rect, 0, NULL, (mFlip) ? SDL_FLIP_VERTICAL : SDL_FLIP_NONE);
-
-    return true;
 }
+
 #endif

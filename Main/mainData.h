@@ -8,14 +8,6 @@
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 630;
 
-const int gInitVelocityYScene = 5;
-
-const int waitTimeBeforePlaying = 2000;
-
-//pipe will be created when current time = this
-int gVelocityYScene = gInitVelocityYScene;
-
-
 //path---
 const std::string imagePath = "image/";
     const std::string bulletImagePath = imagePath + "Bullet/";

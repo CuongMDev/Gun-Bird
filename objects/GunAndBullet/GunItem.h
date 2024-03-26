@@ -24,6 +24,8 @@ struct GunProperties
 
     BULLET_TYPE bulletType;
 
+    CURSOR_TYPE cursorType;
+
     std::string imageName;
 };
 
@@ -51,24 +53,27 @@ protected:
 
     static void loadGunIMG();
 
+    void updateState(ObjectsList &pipeList);
+    void renderTogRenderer() override;
+
 public:
     GunItem();
 
     void init();
-    bool render() override;
+    void render(ObjectsList &pipeList);
 
-    void randomGun();
+    void randomGun(ObjectsList &pipeList);
     GUN_TYPE getCurrentGunType();
     int getCurrentMagazineCount() const;
 };
 
 const GunProperties GunItem::gunProperties[] = {
-        {3, 17, 1, 3, 15, 7, PISTOL_BULLET, "pistol.png"}, //pistol
-        {3, 17, 1, 3, 10, 30, PISTOL_BULLET, "silentpistol.png"}, //silent pistol
-        {20, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, "goldpistol.png"}, //gold pistol
-        {5, 7, 1, 7, 5, 30,AK47_BULLET, "ak47.png"}, //AK47
-        {7, 20, 10, 20, 20, 8,WIN94_BULLET, "win94.png"}, //Win94
-        {12, 30, 20, 20, 30, 5, SNIPER_BULLET, "sniper.png"}, //Sniper
+        {3, 17, 1, 3, 15, 7, PISTOL_BULLET, PISTOL_CURSOR, "pistol.png"}, //pistol
+        {3, 17, 1, 3, 10, 30, PISTOL_BULLET, PISTOL_CURSOR, "silentpistol.png"}, //silent pistol
+        {20, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, GOLDPISTOL_CURSOR, "goldpistol.png"}, //gold pistol
+        {5, 7, 1, 7, 5, 30,AK47_BULLET, AK47_CURSOR, "ak47.png"}, //AK47
+        {7, 20, 10, 20, 20, 8,WIN94_BULLET, WIN94_CURSOR, "win94.png"}, //Win94
+        {12, 30, 20, 20, 30, 5, SNIPER_BULLET, SNIPER_CURSOR, "sniper.png"}, //Sniper
 };
 
 LTexture GunItem::circleTexture = {};
@@ -108,12 +113,18 @@ void GunItem::addRandomTime(Uint32 addTime)
     randomTime += addTime;
 }
 
-void GunItem::randomGun()
+void GunItem::randomGun(ObjectsList &pipeList)
 {
     currentGun = static_cast<GUN_TYPE>(getRandomNumber(PISTOL + 1, GUN_COUNT - 1));
     mTexture = &sTexture[currentGun];
     mPosX = SCREEN_WIDTH;
     mPosY = getRandomNumber(circleTexture.getWidth() / 2, groundPosY - circleTexture.getWidth() / 2);
+
+    //check collision with pipe
+    std::_List_iterator<Object *> object;
+    if (pipeList.getCollisionObject(*this, object)) {
+        mPosY = groundPosY - mPosY;
+    }
 
     currentMagazineCount = getRandomWithPercent<int>(magazinePercent, {1, 2, 3, 4});
 }
@@ -126,7 +137,7 @@ GunItem::GunItem() : Object(false)
 
 void GunItem::init()
 {
-    setRandomTime(SDL_GetTicks() + 10000);
+    setRandomTime(getCurrentTime() + 10000);
     mVelX = -gInitVelocityYScene;
     //to avoid collision with bird
     mPosX = SCREEN_WIDTH + 1;
@@ -138,27 +149,38 @@ void GunItem::init()
     mTexture = &sTexture[PISTOL];
 }
 
-bool GunItem::render()
+void GunItem::updateState(ObjectsList &pipeList)
 {
     if (!GameOver::gameIsOver()) {
         if (isRendering) {
             if (!move()) {
                 init();
-                return false;
+                return;
             }
-        } else if (SDL_GetTicks() >= randomTime) {
-            randomGun();
+        }
+        else if (getCurrentTime() >= randomTime) {
+            randomGun(pipeList);
             addRandomTime(10000);
             isRendering = true;
         }
     }
+}
 
+void GunItem::renderTogRenderer()
+{
     if (isRendering) {
         circleTexture.render(mPosX + mTexture->getWidth() / 2 - circleTexture.getWidth() / 2, mPosY + mTexture->getHeight() / 2 - circleTexture.getHeight() / 2);
         mTexture->render(mPosX, mPosY);
-        return true;
     }
-    return false;
+}
+
+void GunItem::render(ObjectsList &pipeList)
+{
+    if (!gamePaused) {
+        updateState(pipeList);
+    }
+
+    renderTogRenderer();
 }
 
 GUN_TYPE GunItem::getCurrentGunType()

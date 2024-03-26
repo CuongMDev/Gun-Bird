@@ -26,6 +26,7 @@ private:
     LTexture bulletLabel;
 
     int curBullet[GUN_COUNT];
+    //-1 if the number of bullets is infinite
     int bulletLeft[GUN_COUNT];
 
     ObjectsList bulletsList;
@@ -57,6 +58,11 @@ private:
     void shoot();
     void checkReloading();
     void cancelReloading();
+    //change gun to currentGun + val
+    void switchGun(bool rightSwitch);
+    bool checkGunStillHasBullets(GUN_TYPE gunType);
+    bool updateState() override;
+    void renderTogRenderer() override;
 
 public:
     Guns();
@@ -64,12 +70,12 @@ public:
     ObjectsList &getBulletList();
 
     void init();
-    bool render() override;
     void handleEvent(SDL_Event *e);
     void setPosAndAngle(int x, int y);
     void changeGun(GUN_TYPE gunType);
     void reload();
     void addBulletCount(GUN_TYPE gunType, int bulletMagazine);
+    bool render() override;
 };
 
 const int Guns::reloadingTime = 2000;
@@ -93,14 +99,12 @@ void Guns::init()
     mAngle = 0;
     mVelRecoil = 0;
     mouseHold = false;
-    cancelReloading();
     explosionEffect.init();
 
     curTime = 0;
     curTimeRestoreAim = 0;
 
-    currentGun = PISTOL;
-    mTexture = &sTexture[currentGun];
+    changeGun(PISTOL);
 
     memset(curBullet, 0, sizeof(curBullet));
     memset(bulletLeft, 0, sizeof(bulletLeft));
@@ -156,7 +160,7 @@ void Guns::restoreAim()
     if (curTimeRestoreAim > 0) {
         curTimeRestoreAim--;
         if (curTimeRestoreAim % gunProperties[currentGun].timeRestoreAim == 0) {
-            CursorMouse::move(0, 10);
+            cursorMouse->move(0, 10);
         }
     }
 
@@ -223,10 +227,10 @@ void Guns::shoot()
     //recoil
     if (mVelRecoil < 3) {
         //3 first bullets have little recoil
-        CursorMouse::recoilMouse(1, 10);
+        cursorMouse->recoilMouse(1, 10);
     }
     else {
-        CursorMouse::recoilMouse(1, 10 * mVelRecoil);
+        cursorMouse->recoilMouse(1, 10 * mVelRecoil);
     }
 }
 
@@ -235,12 +239,41 @@ void Guns::cancelReloading()
     reloadingEndTime = -1;
 }
 
+void Guns::switchGun(bool rightSwitch)
+{
+    int val = (rightSwitch) ? 1 : -1;
+    int newGun = (int)currentGun + val;
+    if (newGun < 0) newGun += GUN_COUNT;
+    if (newGun >= GUN_COUNT) newGun -= GUN_COUNT;
+
+    //find gun has bullets
+    while (!checkGunStillHasBullets(static_cast<GUN_TYPE>(newGun))) {
+        newGun += val;
+        if (newGun < 0) newGun += GUN_COUNT;
+        if (newGun >= GUN_COUNT) newGun -= GUN_COUNT;
+    }
+
+    changeGun(static_cast<GUN_TYPE>(newGun));
+}
+
+bool Guns::checkGunStillHasBullets(GUN_TYPE gunType)
+{
+    if (bulletLeft[gunType] == -1) {
+        return true;
+    }
+    if (curBullet[gunType] + bulletLeft[gunType] > 0) {
+        return true;
+    }
+
+    return false;
+}
+
 void Guns::checkReloading()
 {
     if (reloadingEndTime == -1) {
         return;
     }
-    if (SDL_GetTicks() <= reloadingEndTime) {
+    if (getCurrentTime() <= reloadingEndTime) {
         return;
     }
 
@@ -266,28 +299,20 @@ void Guns::handleEvent(SDL_Event *e)
 {
     if (e->type == SDL_KEYDOWN) {
         switch (e->key.keysym.sym) {
-            case SDLK_1:
-                changeGun(PISTOL);
-                break;
-            case SDLK_2:
-                changeGun(SILENT_PISTOL);
-                break;
-            case SDLK_3:
-                changeGun(GOLD_PISTOL);
-                break;
-            case SDLK_4:
-                changeGun(AK47);
-                break;
-            case SDLK_5:
-                changeGun(WIN94);
-                break;
-            case SDLK_6:
-                changeGun(SNIPER);
-                break;
-
+            //reload
             case SDLK_r:
                 reload();
                 break;
+
+            //switch gun
+            case SDLK_q:
+                switchGun(false);
+                break;
+            case SDLK_e:
+                switchGun(true);
+                break;
+
+            //-------
 
             default:
                 break;
@@ -311,10 +336,15 @@ void Guns::handleEvent(SDL_Event *e)
     }
 }
 
-bool Guns::render()
+bool Guns::updateState()
 {
     checkReloading();
 
+    return true;
+}
+
+void Guns::renderTogRenderer()
+{
     //show type
     mTexture->render(typePosX, typePosY);
     //show bullet
@@ -326,8 +356,6 @@ bool Guns::render()
     SDL_Point center{ pivotX, pivotY };
     mTexture->render(mPosX, mPosY, NULL, mAngle, &center);
     explosionEffect.render();
-
-    return true;
 }
 
 void Guns::setPosAndAngle(int x, int y)
@@ -342,6 +370,7 @@ void Guns::changeGun(GUN_TYPE gunType)
     cancelReloading();
     currentGun = gunType;
     mTexture = &sTexture[currentGun];
+    cursorMouse->setCursor(gunProperties[currentGun].cursorType);
 
     updateBulletText();
 }
@@ -353,7 +382,7 @@ void Guns::reload()
         return;
     }
     if (reloadingEndTime == -1) {
-        reloadingEndTime = SDL_GetTicks() + reloadingTime;
+        reloadingEndTime = getCurrentTime() + reloadingTime;
     }
 }
 
@@ -361,6 +390,11 @@ void Guns::addBulletCount(GUN_TYPE gunType, int bulletMagazine)
 {
     bulletLeft[gunType] += bulletMagazine * gunProperties[gunType].bulletInTape;
     updateBulletText();
+}
+
+bool Guns::render()
+{
+    return Object::render();
 }
 
 #endif

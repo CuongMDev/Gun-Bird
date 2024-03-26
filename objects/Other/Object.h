@@ -7,6 +7,7 @@ class Object
 {
 private:
     bool initialized;
+    bool paused;
 protected:
     LTexture *mTexture;
 
@@ -15,6 +16,9 @@ protected:
     //dimensions
     virtual int getWidth() const;
     virtual int getHeight() const;
+
+    virtual bool updateState();
+    virtual void renderTogRenderer();
 
 public:
     Object(bool init = true);
@@ -32,6 +36,7 @@ Object::Object(bool init)
     if (init) {
         mTexture = new LTexture();
     }
+    paused = false;
 }
 
 Object::~Object()
@@ -52,10 +57,28 @@ int Object::getHeight() const
     return mTexture->getHeight();
 }
 
-bool Object::render()
+bool Object::updateState()
+{
+    return true;
+}
+
+void Object::renderTogRenderer()
 {
     mTexture->render(mPosX, mPosY);
-    return true;
+}
+
+bool Object::render()
+{
+    bool stateUpdated;
+    if (gamePaused) {
+        stateUpdated = true;
+    }
+    else {
+        stateUpdated = updateState();
+    }
+
+    renderTogRenderer();
+    return stateUpdated;
 }
 
 bool Object::checkCollisionObject(const Object &object)

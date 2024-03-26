@@ -46,6 +46,9 @@ private:
 
     void loadIMG();
 
+    bool updateState() override;
+    void renderTogRenderer() override;
+
 protected:
     void init(int x, int y, double angle, BULLET_TYPE bulletType, int damage);
 
@@ -54,7 +57,6 @@ public:
     ~Bullets();
 
     int getDamage();
-    bool render() override;
 };
 
 const BulletProperties Bullets::bulletProperties[] = {
@@ -133,14 +135,14 @@ int Bullets::getDamage()
     return mDamage;
 }
 
-bool Bullets::render()
-{
-    if (move()) {
-        mTexture->render(mPosX, mPosY, NULL, mAngle);
-        return true;
-    }
-
+bool Bullets::updateState() {
+    if (move()) return true;
     return false;
+}
+
+void Bullets::renderTogRenderer()
+{
+    mTexture->render(mPosX, mPosY, NULL, mAngle);
 }
 
 #endif

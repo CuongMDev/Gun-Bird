@@ -3,7 +3,7 @@
 
 #include "Character/MainBird.h"
 #include "Character/Bat.h"
-//#include "Character/Boss.h"
+#include "Character/Boss.h"
 #include "Scene/Ground.h"
 #include "Scene/Background.h"
 #include "Scene/Pipe.h"

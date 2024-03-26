@@ -6,16 +6,17 @@
 const int groundPosX = 0;
 const int groundPosY = SCREEN_HEIGHT - 79;
 
-class Ground : private Object
+class Ground : public Object
 {
 private:
     void init(int x, int y);
     void loadIMG();
+
+    bool updateState() override;
+    void renderTogRenderer() override;
 public:
     Ground(int x, int y);
     ~Ground();
-
-    bool render();
 };
 
 Ground::Ground(int x, int y)
@@ -43,21 +44,23 @@ void Ground::loadIMG()
     mTexture->loadFromFile(sceneImagePath + "ground.png");
 }
 
-bool Ground::render()
+bool Ground::updateState()
+{
+    mPosX -= gVelocityYScene;
+    // If the ground has reached the left edge, reset its position
+    if (mPosX <= -mTexture->getWidth()) {
+        mPosX = 0;
+    }
+
+    return true;
+}
+
+void Ground::renderTogRenderer()
 {
     int tWidth = getWidth();
     mTexture->render(mPosX, mPosY);
     mTexture->render(mPosX + tWidth, mPosY);
     mTexture->render(mPosX + 2 * tWidth, mPosY);
-
-    mPosX -= gVelocityYScene; // Adjust the speed of scrolling as needed
-
-    // If the ground has reached the left edge, reset its position
-    if (mPosX <= -getWidth()) {
-        mPosX = 0;
-    }
-
-    return true;
 }
 
 #endif

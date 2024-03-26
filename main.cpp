@@ -36,6 +36,7 @@ int main(int argc, char *args[])
 
             //Render
             game.render();
+            cursorMouse->render();
 
             //Update screen
             SDL_RenderPresent(gRenderer);

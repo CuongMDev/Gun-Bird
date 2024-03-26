@@ -21,6 +21,9 @@ private:
 
     bool checkDownTime();
 
+    bool updateState() override;
+    void renderTogRenderer() override;
+
 public:
     Bat(int x, int y);
     ~Bat();
@@ -32,7 +35,6 @@ public:
     void init(int x, int y);
 
     void decreaseHealth(int value);
-    bool render() override;
 };
 
 const std::pair<int, int> Bat::randomTimeInterval = {500, 1000};
@@ -55,37 +57,40 @@ void Bat::init(int x, int y)
     health = new HealthBar(0, 0, true, 12);
 }
 
-bool Bat::render()
+bool Bat::updateState()
 {
-    bool rendered = renderCharacter();
-    if (!rendered) {
+    bool updated = Character::updateState();
+    if (!updated) {
         //check downtime before death
-        rendered = !checkDownTime();
+        updated = !checkDownTime();
     }
-
     if (mPosX <= 0) {
-        rendered = false;
+        updated = false;
     }
     if (!isDied()) {
         health->updatePos(mPosX + getWidth() / 2, mPosY - 10);
-        health->render();
-        //go in screen
-//        if (mPosX + getWidth() > SCREEN_WIDTH - 50) {
-//            mPosX -= batSpeed;
-//        }
     }
 
-    return rendered;
+    return updated;
+}
+
+void Bat::renderTogRenderer()
+{
+    if (!isDied()) {
+        health->render();
+    }
+
+    Character::renderTogRenderer();
 }
 
 bool Bat::checkDownTime()
 {
     if (downTime == -1) {
-        downTime = SDL_GetTicks() + batTimeBeforeBeingDeleted;
+        downTime = getCurrentTime() + batTimeBeforeBeingDeleted;
         return false;
     }
 
-    if (SDL_GetTicks() >= downTime) {
+    if (getCurrentTime() >= downTime) {
         return true;
     }
     return false;
@@ -93,7 +98,7 @@ bool Bat::checkDownTime()
 
 void Bat::spawnBat(ObjectsList *batList)
 {
-    if (SDL_GetTicks() >= nextCreatedTime) {
+    if (getCurrentTime() >= nextCreatedTime) {
         //bat Y
         int batPosY = getRandomNumber(randomHeightInterval.first, randomHeightInterval.second);
         //create new bat
@@ -101,7 +106,7 @@ void Bat::spawnBat(ObjectsList *batList)
         batList->add(bat);
 
         //reset created time
-        nextCreatedTime = SDL_GetTicks() + getRandomNumber(randomTimeInterval.first, randomTimeInterval.second);
+        nextCreatedTime = getCurrentTime() + getRandomNumber(randomTimeInterval.first, randomTimeInterval.second);
     }
 }
 
@@ -125,7 +130,7 @@ void Bat::renderAll(ObjectsList *batList)
 
 void Bat::resetTime()
 {
-    nextCreatedTime = SDL_GetTicks() + waitTimeBeforePlaying;
+    nextCreatedTime = getCurrentTime() + waitTimeBeforePlaying;
 }
 
 #endif //BAT_H

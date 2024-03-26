@@ -2,33 +2,34 @@
 #define GAME_H
 
 #include "../AllObjects.h"
-#include "../CursorMouse/CursorMouse.h"
 #include "Point.h"
 
 class Game
 {
 private:
+    const int gameRoundsPerLevel = 12;
+
     Background *background;
     Ground *ground;
     MainBird *mainBird;
     ObjectsList *batList;
-    //Boss *boss;
+//    Boss *boss;
     GameOver *gameOver;
     ObjectsList *pipeList;
     Point *point;
-    CursorMouse* cursorMouse;
     GunItem *gunItem;
 
-    void handleGameOver();
+    static void handleGameOver();
     void resetGame();
+    void changeGamePaused();
 
-    //check colision
-    void checkColisionObjects();
-    void checkColisionBirdAndEnemyBullet();
-    void checkColisionBirdAndPipe();
-    void checkColisionPipeAndPlayerBullet();
-    void checkColisionObjectsBirdAndBat();
-    void checkColisionObjectsBirdAndItems();
+    //check collision
+    void checkCollisionObjects();
+    void checkCollisionBirdAndEnemyBullet();
+    void checkCollisionBirdAndPipe();
+    void checkCollisionPipeAndPlayerBullet();
+    void checkCollisionObjectsBirdAndBat();
+    void checkCollisionObjectsBirdAndItems();
     void checkGameOver();
 
 public:
@@ -43,15 +44,16 @@ public:
 
 Game::Game()
 {
+    pausedTime = 0;
+
     background = new Background();
     ground = new Ground(groundPosX, groundPosY);
     mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
     batList = new ObjectsList();
-    //boss = new Boss();
+//    boss = new Boss();
     gameOver = new GameOver();
     pipeList = new ObjectsList();
     point = new Point;
-    cursorMouse = new CursorMouse();
     gunItem = new GunItem();
     resetGame();
 }
@@ -65,7 +67,6 @@ Game::~Game()
     delete gameOver;
     delete pipeList;
     delete point;
-    delete cursorMouse;
     delete gunItem;
 }
 
@@ -74,7 +75,7 @@ void Game::handleGameOver()
     //stop scene move
     gVelocityYScene = 0;
 
-    CursorMouse::setCursor(DEFAULT_CURSOR);
+    cursorMouse->setCursor(DEFAULT_CURSOR);
 }
 
 void Game::resetGame()
@@ -92,8 +93,19 @@ void Game::resetGame()
 
     gameOver->reset();
     mainBird->init(mainBirdPosX, mainBirdPosY);
+}
 
-    CursorMouse::setCursor(AIM_CURSOR);
+void Game::changeGamePaused()
+{
+    gamePaused = !gamePaused;
+
+    if (gamePaused) {
+        startPauseTime = SDL_GetTicks();
+    }
+    else {
+        pausedTime += SDL_GetTicks() - startPauseTime;
+        startPauseTime = -1;
+    }
 }
 
 void Game::handleEvent(SDL_Event *e)
@@ -102,6 +114,20 @@ void Game::handleEvent(SDL_Event *e)
 
     if (GameOver::gameIsOver()) {
         handleGameOverButtonClicked(gameOver->handleEvent(e));
+    }
+    else { //game not over
+        if (e->type == SDL_KEYDOWN) {
+            //Select surfaces based on key press
+            switch (e->key.keysym.sym) {
+                //pause game
+                case SDLK_p:
+                    changeGamePaused();
+                    break;
+
+                default:
+                    break;
+            }
+        }
     }
 }
 
@@ -114,7 +140,10 @@ void Game::handleGameOverButtonClicked(BUTTON buttonClicked)
 {
     switch (buttonClicked) {
         case HOMEBUTTON:
-            //handle
+            //quit game
+            SDL_Event quitEvent;
+            quitEvent.type = SDL_QUIT;
+            SDL_PushEvent(&quitEvent);
             break;
         case RETRYBUTTON:
             resetGame();
@@ -127,34 +156,34 @@ void Game::handleGameOverButtonClicked(BUTTON buttonClicked)
 
 void Game::render()
 {
-    checkColisionObjects();
+    checkCollisionObjects();
     checkGameOver();
 
     background->render();
     ground->render();
     Pipe::renderAll(pipeList);
     point->render();
-    gunItem->render();
+    gunItem->render(*pipeList);
     Bat::renderAll(batList);
-    //boss->render();
+//    boss->render();
     if (!mainBird->render()) {
         gameOver->render();
     }
 }
 
-void Game::checkColisionObjects()
+void Game::checkCollisionObjects()
 {
     if (GameOver::gameIsOver()) {
         return;
     }
-    checkColisionBirdAndEnemyBullet();
-    checkColisionBirdAndPipe();
-    checkColisionPipeAndPlayerBullet();
-    checkColisionObjectsBirdAndBat();
-    checkColisionObjectsBirdAndItems();
+    checkCollisionBirdAndEnemyBullet();
+    checkCollisionBirdAndPipe();
+    checkCollisionPipeAndPlayerBullet();
+    checkCollisionObjectsBirdAndBat();
+    checkCollisionObjectsBirdAndItems();
 }
 
-void Game::checkColisionBirdAndEnemyBullet()
+void Game::checkCollisionBirdAndEnemyBullet()
 {
     std::_List_iterator<Object *> objectA, objectB;
     auto &bulletList = mainBird->getBulletList();
@@ -186,7 +215,7 @@ void Game::checkColisionBirdAndEnemyBullet()
     }
 }
 
-void Game::checkColisionBirdAndPipe()
+void Game::checkCollisionBirdAndPipe()
 {
     std::_List_iterator<Object *> object;
     if (pipeList->getCollisionObject(*mainBird, object)) {
@@ -194,7 +223,7 @@ void Game::checkColisionBirdAndPipe()
     }
 }
 
-void Game::checkColisionPipeAndPlayerBullet()
+void Game::checkCollisionPipeAndPlayerBullet()
 {
     std::_List_iterator<Object *> objectA, objectB;
     auto &bulletList = mainBird->getBulletList();
@@ -203,7 +232,7 @@ void Game::checkColisionPipeAndPlayerBullet()
     }
 }
 
-void Game::checkColisionObjectsBirdAndBat()
+void Game::checkCollisionObjectsBirdAndBat()
 {
     std::_List_iterator<Object *> object;
     bool continueToFind = false;
@@ -222,7 +251,7 @@ void Game::checkColisionObjectsBirdAndBat()
     }
 }
 
-void Game::checkColisionObjectsBirdAndItems()
+void Game::checkCollisionObjectsBirdAndItems()
 {
     if (mainBird->checkCollisionObject(*gunItem)) {
         mainBird->addBulletCount(gunItem->getCurrentGunType(), gunItem->getCurrentMagazineCount());

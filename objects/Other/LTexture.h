@@ -3,9 +3,10 @@
 
 #include <SDL2/SDL_ttf.h>
 #include "../../Main/mainData.h"
-#include "../CursorMouse/CursorMouse.h"
 
 //lazyfoo https://lazyfoo.net/tutorials/SDL/
+
+SDL_Surface *loadSurfaceFromFile(const std::string &path, const bool &removeBKG = false, const Uint8 &r = 0, const Uint8 &g = 0, const Uint8 &b = 0);
 
 class LTexture
 {
@@ -188,6 +189,25 @@ int LTexture::getWidth()
 int LTexture::getHeight()
 {
     return mHeight;
+}
+
+//-----------------------------
+
+SDL_Surface *loadSurfaceFromFile(const std::string &path, const bool &removeBKG, const Uint8 &r, const Uint8 &g, const Uint8 &b) {
+    //Load image at specified path
+    SDL_Surface *loadedSurface = IMG_Load(path.c_str());
+    if (loadedSurface == NULL) {
+        printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+        return NULL;
+    }
+    else {
+        //Color key image
+        if (removeBKG) {
+            SDL_SetColorKey(loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format, r, g, b));
+        }
+
+        return loadedSurface;
+    }
 }
 
 #endif

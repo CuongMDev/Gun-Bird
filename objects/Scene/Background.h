@@ -11,11 +11,12 @@ class Background : public Object
 private:
     void init();
     void loadIMG();
+
+    bool updateState() override;
+    void renderTogRenderer() override;
 public:
     Background();
     ~Background();
-
-    bool render() override;
 };
 
 Background::Background()
@@ -43,21 +44,23 @@ void Background::loadIMG()
     mTexture->loadFromFile(sceneImagePath + "background.png");
 }
 
-bool Background::render()
+bool Background::updateState()
 {
-    int tWidth = mTexture->getWidth();
-    mTexture->render(mPosX, mPosY);
-    mTexture->render(mPosX + tWidth, mPosY);
-    mTexture->render(mPosX + 2 * tWidth, mPosY);
-
-    mPosX -= gVelocityYScene; // Adjust the speed of scrolling as needed
-
+    mPosX -= gVelocityYScene;
     // If the ground has reached the left edge, reset its position
     if (mPosX <= -mTexture->getWidth()) {
         mPosX = 0;
     }
 
     return true;
+}
+
+void Background::renderTogRenderer()
+{
+    int tWidth = mTexture->getWidth();
+    mTexture->render(mPosX, mPosY);
+    mTexture->render(mPosX + tWidth, mPosY);
+    mTexture->render(mPosX + 2 * tWidth, mPosY);
 }
 
 #endif

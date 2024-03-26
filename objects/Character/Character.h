@@ -22,7 +22,7 @@ enum DIRECTION
 class Character : public Object
 {
 private:
-    std::vector<LTexture> sTexture;
+    std::vector<LTexture> *sTexture;
 
     CHARACTER_TYPE mCharacterType;
     DIRECTION direction;
@@ -37,6 +37,12 @@ private:
     //The velocity
     int mVelX, mVelY;
     double mVelAngle;
+
+    //border dimension
+    int borderPosX;
+    int borderPosY;
+    int borderWidth;
+    int borderHeight;
 
     double limitAngleUpper;
     double limitAngleLower;
@@ -53,8 +59,8 @@ private:
 
     bool isStayingOnGround();
     bool move();
-    bool playingRender();
-    bool dyingRender();
+    bool playingUpdate();
+    bool dyingUpdate();
 
 protected:
     Character(int x, int y, CHARACTER_TYPE character);
@@ -67,7 +73,8 @@ protected:
     void decreaseVelAndAngle();
 
     void onDied();
-    bool renderCharacter();
+    bool updateState() override;
+    void renderTogRenderer() override;
 
     void setAlpha(Uint8 alpha);
     void setVelX(int value);
@@ -91,14 +98,15 @@ Character::Character(int x, int y, CHARACTER_TYPE character) : Object(false)
 
 Character::~Character()
 {
-    for (int i = 0; i < imgCount; i++) {
-        sTexture[i].free();
+    if (mCharacterType == BOSS) {
+        return;
     }
+    delete sTexture;
 }
 
 void Character::initCharacter(int x, int y)
 {
-    mTexture = &sTexture[0];
+    mTexture = &(*sTexture)[0];
 
     died = false;
 
@@ -118,6 +126,12 @@ void Character::initCharacter(int x, int y)
     mVelX = 0;
     mVelY = 0;
     mVelAngle = 0;
+
+    //init border dimension
+    borderPosX = 0;
+    borderPosY = 0;
+    borderWidth = SCREEN_WIDTH;
+    borderHeight = groundPosY + 10;
 
     if (direction == RIGHT) {
         limitAngleUpper = 0;
@@ -150,16 +164,17 @@ void Character::onDied()
 
 void Character::loadIMG()
 {
+    sTexture = new std::vector<LTexture>;
     switch (mCharacterType) {
         //image: https://flappybird.io/
         case MAIN_BIRD:
             imgCount = 4;
-            sTexture.resize(imgCount);
+            sTexture->resize(imgCount);
 
-            sTexture[0].loadFromFile(mainBirdImagePath + "mainBird0.png", true, 124, 197, 205);
-            sTexture[1].loadFromFile(mainBirdImagePath + "mainBird1.png", true, 124, 197, 205);
-            sTexture[2].loadFromFile(mainBirdImagePath + "mainBird2.png", true, 124, 197, 205);
-            sTexture[3] = sTexture[1];
+            (*sTexture)[0].loadFromFile(mainBirdImagePath + "mainBird0.png", true, 124, 197, 205);
+            (*sTexture)[1].loadFromFile(mainBirdImagePath + "mainBird1.png", true, 124, 197, 205);
+            (*sTexture)[2].loadFromFile(mainBirdImagePath + "mainBird2.png", true, 124, 197, 205);
+            (*sTexture)[3] = (*sTexture)[1];
 
             direction = RIGHT;
             initImgChangeVelWhenAir = 2;
@@ -168,12 +183,12 @@ void Character::loadIMG()
             //image: https://opengameart.org/content/bat-rework
         case BAT:
             imgCount = 4;
-            sTexture.resize(imgCount);
+            sTexture->resize(imgCount);
 
-            sTexture[0].loadFromFile(batImagePath + "bat0.png", true, 34, 177, 76);
-            sTexture[1].loadFromFile(batImagePath + "bat1.png", true, 34, 177, 76);
-            sTexture[2].loadFromFile(batImagePath + "bat2.png", true, 34, 177, 76);
-            sTexture[3] = sTexture[1];
+            (*sTexture)[0].loadFromFile(batImagePath + "bat0.png", true, 34, 177, 76);
+            (*sTexture)[1].loadFromFile(batImagePath + "bat1.png", true, 34, 177, 76);
+            (*sTexture)[2].loadFromFile(batImagePath + "bat2.png", true, 34, 177, 76);
+            (*sTexture)[3] = (*sTexture)[1];
 
             direction = LEFT;
             initImgChangeVelWhenAir = 6;
@@ -181,10 +196,10 @@ void Character::loadIMG()
             break;
 
         case BOSS:
-            imgCount = 6;
-            sTexture.resize(imgCount);
+            imgCount = 8;
+            sTexture->resize(imgCount);
             for (int i = 0; i < imgCount; i++) {
-                sTexture[i].loadFromFile(dragonImagePath + "dragon" + std::to_string(i) + ".png", true, 34,177,76);
+                (*sTexture)[i].loadFromFile(dragonImagePath + "Move/move" + std::to_string(i) + ".png", true, 34,177,76);
             }
 
             direction = LEFT;
@@ -196,14 +211,14 @@ void Character::loadIMG()
 
 void Character::setToBorderPos()
 {
-    if (mPosX < 0) {
-        mPosX = 0;
+    if (mPosX < borderPosX) {
+        mPosX = borderPosX;
     }
-    if (mPosX + getWidth() > SCREEN_WIDTH) {
-        mPosX = SCREEN_WIDTH - getWidth();
+    if (mPosX + getWidth() > borderWidth) {
+        mPosX = borderWidth - getWidth();
     }
-    if (mPosY + getHeight() < 0) {
-        mPosY = -getHeight();
+    if (mPosY + getHeight() < borderPosY) {
+        mPosY = borderPosY - getHeight();
     }
 }
 
@@ -217,11 +232,9 @@ void Character::increaseTimeRender()
             curIMGRender = 0;
         }
     }
-
-     mTexture = &sTexture[curIMGRender];
 }
 
-bool Character::playingRender()
+bool Character::playingUpdate()
 {
     bool moved = false;
     if (move()) {
@@ -235,13 +248,13 @@ bool Character::playingRender()
         imgChangeVel = initImgChangeVelWhenAir;
     }
 
-    mTexture->render(mPosX, mPosY, NULL, mAngle);
+    mTexture = &(*sTexture)[curIMGRender];
     increaseTimeRender();
 
     return moved;
 }
 
-bool Character::dyingRender()
+bool Character::dyingUpdate()
 {
     //start falling
     decreaseVelAndAngle();
@@ -253,18 +266,35 @@ bool Character::dyingRender()
     }
 
     bool moved = move();
-    mTexture->render(mPosX, mPosY, NULL, mAngle);
     return moved;
+}
+
+bool Character::updateState()
+{
+    bool updated = true;
+    if (!died) {
+        playingUpdate();
+    }
+    else {
+        updated = dyingUpdate();
+    }
+
+    return updated;
+}
+
+void Character::renderTogRenderer()
+{
+    mTexture->render(mPosX, mPosY, NULL, mAngle);
 }
 
 bool Character::isStayingOnGround()
 {
-    return (mPosY + getHeight() == groundPosY + 10);
+    return (mPosY + getHeight() == borderPosY + borderHeight);
 }
 
 bool Character::checkGroundCollision()
 {
-    if (mPosY + getHeight() >= groundPosY + 10) {
+    if (mPosY + getHeight() >= borderPosY + borderHeight) {
         return true;
     }
     return false;
@@ -349,25 +379,12 @@ bool Character::isDied() const
     return died;
 }
 
-bool Character::renderCharacter() {
-    bool rendered = true;
-    if (!died) {
-        playingRender();
-    }
-    else {
-        rendered = dyingRender();
-    }
-
-    return rendered;
-}
-
 void Character::setAlpha(Uint8 alpha)
 {
     for (int img = 0; img < imgCount; img++) {
-        sTexture[img].setAlpha(alpha);
+        (*sTexture)[img].setAlpha(alpha);
     }
 }
-
 
 void Character::setVelX(int value)
 {

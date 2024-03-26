@@ -27,10 +27,14 @@ private:
     void setInvisible(bool state);
     bool checkVisible();
     void updateVisibleState();
+    void jump();
 
     const int maxVisibleState = 6;
     //blurry if <= maxVisibleState / 2 and clear if > maxVisibleState / 2
     int currentVisibleState;
+
+    bool updateState() override;
+    void renderTogRenderer() override;
 
 public:
     MainBird(int x, int y);
@@ -39,7 +43,6 @@ public:
     void init(int x, int y);
     void handleEvent(SDL_Event *e);
     void handleKey(const Uint8 *currentKeyStates);
-    bool render() override;
     void changeHealth(int value);
     void addBulletCount(GUN_TYPE gunType, int bulletCount);
 
@@ -78,14 +81,6 @@ void MainBird::handleEvent(SDL_Event *e)
     if (e->type == SDL_KEYDOWN) {
         //Select surfaces based on key press
         switch (e->key.keysym.sym) {
-            case SDLK_SPACE:
-                setVelY(15);
-                setVelAngle(8);
-                break;
-            case SDLK_w:
-                setVelY(15);
-                setVelAngle(8);
-                break;
 
             default:
                 break;
@@ -101,6 +96,16 @@ void MainBird::handleKey(const Uint8 *currentKeyStates)
         return;
     }
 
+    static int spaceRepeat = 0;
+    if (currentKeyStates[SDL_SCANCODE_SPACE]) {
+        if (!spaceRepeat || spaceRepeat > 30) {
+            jump();
+        }
+
+        spaceRepeat++;
+    }
+    else spaceRepeat = 0;
+
     setVelX(0);
     if (currentKeyStates[SDL_SCANCODE_D]) {
         setVelX(5);
@@ -113,7 +118,7 @@ void MainBird::handleKey(const Uint8 *currentKeyStates)
 void MainBird::setInvisible(bool state)
 {
     if (state) {
-        invisibleEndTime = SDL_GetTicks() + invisibleTime;
+        invisibleEndTime = getCurrentTime() + invisibleTime;
     }
     else {
         invisibleEndTime = -1;
@@ -126,7 +131,7 @@ bool MainBird::checkVisible()
     if (invisibleEndTime == -1) {
         return false;
     }
-    if (SDL_GetTicks() < invisibleEndTime) {
+    if (getCurrentTime() < invisibleEndTime) {
         return true;
     }
     else {
@@ -150,24 +155,36 @@ void MainBird::updateVisibleState()
     }
 }
 
-bool MainBird::render()
+void MainBird::jump()
 {
-    bool rendered = renderCharacter();
+    setVelY(15);
+    setVelAngle(8);
+}
+
+bool MainBird::updateState() {
+    bool updated = Character::updateState();
 
     if (checkVisible()) {
         updateVisibleState();
     }
-    health->render();
     if (!GameOver::gameIsOver()) {
         gun.setPosAndAngle(mPosX + getWidth() / 3, mPosY + getHeight() / 3);
-        gun.render();
     }
 
     if (!isDied()) {
         decreaseVelAndAngle();
     }
 
-    return rendered;
+    return updated;
+}
+
+void MainBird::renderTogRenderer()
+{
+    Character::renderTogRenderer();
+    if (!GameOver::gameIsOver()) {
+        gun.render();
+    }
+    health->render();
 }
 
 void MainBird::changeHealth(int value)

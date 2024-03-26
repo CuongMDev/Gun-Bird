@@ -17,6 +17,9 @@ private:
 
     bool checkDownTime();
 
+    bool updateState() override;
+    void renderTogRenderer() override;
+
 public:
     Boss();
     ~Boss();
@@ -24,7 +27,6 @@ public:
     void init();
 
     void decreaseHealth(int value);
-    bool render() override;
 };
 
 Uint32 Boss::nextCreatedTime = waitTimeBeforePlaying;
@@ -40,44 +42,54 @@ Boss::~Boss()
 void Boss::init()
 {
     downTime = -1;
-    initCharacter(SCREEN_WIDTH, SCREEN_HEIGHT / 2 - getHeight() / 2);
+    initCharacter(SCREEN_WIDTH, 0);
+//    setVelX(-10);
+//    setVelY(-10);
     health = new HealthBar(0, 0, true, 100);
 }
 
-bool Boss::render()
+bool Boss::checkDownTime()
 {
-    bool rendered = renderCharacter();
-    if (!rendered) {
-        //check downtime before death
-        rendered = !checkDownTime();
+    if (downTime == -1) {
+        downTime = getCurrentTime() + dragonTimeBeforeBeingDeleted;
+        return false;
     }
 
-    if (mPosX <= 0) {
-        rendered = false;
+    if (getCurrentTime() >= downTime) {
+        return true;
     }
+    return false;
+}
+
+bool Boss::updateState()
+{
+    bool updated = Character::updateState();
+    if (!updated) {
+        //check downtime before death
+        updated = !checkDownTime();
+    }
+    if (mPosX <= 0) {
+        updated = false;
+    }
+
     if (!isDied()) {
         health->updatePos(mPosX + getWidth() / 2, mPosY - 10);
-        health->render();
         //go in screen
         if (mPosX + getWidth() > SCREEN_WIDTH - 50) {
             mPosX -= dragonSpeed;
         }
     }
 
-    return rendered;
+    return updated;
 }
 
-bool Boss::checkDownTime()
+void Boss::renderTogRenderer()
 {
-    if (downTime == -1) {
-        downTime = SDL_GetTicks() + dragonTimeBeforeBeingDeleted;
-        return false;
+    if (!isDied()) {
+        health->render();
     }
 
-    if (SDL_GetTicks() >= downTime) {
-        return true;
-    }
-    return false;
+    Character::renderTogRenderer();
 }
 
 void Boss::decreaseHealth(int value)
