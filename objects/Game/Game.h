@@ -3,6 +3,7 @@
 
 #include "../AllObjects.h"
 #include "Point.h"
+#include "Item.h"
 
 class Game
 {
@@ -17,7 +18,7 @@ private:
     GameOver *gameOver;
     ObjectsList *pipeList;
     Point *point;
-    GunItem *gunItem;
+    Item *item;
 
     static void handleGameOver();
     void resetGame();
@@ -54,7 +55,7 @@ Game::Game()
     gameOver = new GameOver();
     pipeList = new ObjectsList();
     point = new Point;
-    gunItem = new GunItem();
+    item = new Item();
     resetGame();
 }
 
@@ -67,7 +68,7 @@ Game::~Game()
     delete gameOver;
     delete pipeList;
     delete point;
-    delete gunItem;
+    delete item;
 }
 
 void Game::handleGameOver()
@@ -87,7 +88,7 @@ void Game::resetGame()
     Bat::resetTime();
 
     point->init();
-    gunItem->init();
+    item->init();
 
     gVelocityYScene = gInitVelocityYScene;
 
@@ -101,12 +102,16 @@ void Game::changeGamePaused()
 
     if (gamePaused) {
         startPauseTime = SDL_GetTicks();
+
+        cursorMouse->saveCursor();
+        cursorMouse->setCursor(DEFAULT_CURSOR);
     }
     else {
         pausedTime += SDL_GetTicks() - startPauseTime;
         startPauseTime = -1;
-    }
 
+        cursorMouse->loadSavedCursor();
+    }
 }
 
 void Game::handleEvent(SDL_Event *e)
@@ -164,7 +169,7 @@ void Game::render()
     ground->render();
     Pipe::renderAll(pipeList);
     point->render();
-    gunItem->render(*pipeList);
+    item->render(*pipeList);
     Bat::renderAll(batList);
 //    boss->render();
     if (!mainBird->render()) {
@@ -220,7 +225,7 @@ void Game::checkCollisionBirdAndPipe()
 {
     std::_List_iterator<Object *> object;
     if (pipeList->getCollisionObject(*mainBird, object)) {
-        mainBird->changeHealth(-30);
+        mainBird->changeHealth(-pipeDamage);
     }
 }
 
@@ -242,7 +247,7 @@ void Game::checkCollisionObjectsBirdAndBat()
     while (batList->getCollisionObject(*mainBird, object, continueToFind)) {
         Bat *bat = dynamic_cast<Bat*>(*object);
         if (!bat->isDied()) {
-            mainBird->changeHealth(-30);
+            mainBird->changeHealth(-batDamage);
             break;
         }
         //next bat
@@ -254,9 +259,16 @@ void Game::checkCollisionObjectsBirdAndBat()
 
 void Game::checkCollisionObjectsBirdAndItems()
 {
-    if (mainBird->checkCollisionObject(*gunItem)) {
-        mainBird->addBulletCount(gunItem->getCurrentGunType(), gunItem->getCurrentMagazineCount());
-        gunItem->init();
+    if (mainBird->checkCollisionObject(*item)) {
+        if (item->isGunType()) {
+            mainBird->addBulletCount(Item::toGunType(item->getItemType()), item->getItemValue());
+        }
+        else {
+            //health item
+            mainBird->changeHealth(item->getItemValue());
+        }
+
+        item->init();
     }
 }
 

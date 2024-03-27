@@ -5,6 +5,8 @@
 #include "../Other/ObjectsList.h"
 #include "../Game/GameOver.h"
 
+const int pipeDamage = 1;
+
 class Pipe : public Object
 {
 private:

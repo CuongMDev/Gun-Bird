@@ -4,6 +4,8 @@
 #include "Character.h"
 #include "../Other/ObjectsList.h"
 
+const int batDamage = 1;
+
 class Bat : public Character
 {
 private:

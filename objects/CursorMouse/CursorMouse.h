@@ -25,6 +25,13 @@ class CursorMouse : public Object
 private:
     LTexture mCursor[CURSOR_COUNT];
 
+    //use to save pos & type
+    //-1 if it has not saved
+    int sMouseX, sMouseY;
+    CURSOR_TYPE sCursor;
+
+    CURSOR_TYPE currentCursor;
+
     void loadIMG();
 
 public:
@@ -35,6 +42,9 @@ public:
     void recoilMouse(int xRecoil, int yRecoil);
     void move(int valueX, int valueY);
     bool render() override;
+
+    void saveCursor();
+    void loadSavedCursor();
 };
 
 CursorMouse::CursorMouse() : Object(false)
@@ -45,6 +55,11 @@ CursorMouse::CursorMouse() : Object(false)
     // Lock mouse inside the window
     SDL_SetWindowGrab(gWindow, SDL_TRUE);
     SDL_SetRelativeMouseMode(SDL_TRUE);
+
+    currentCursor = DEFAULT_CURSOR;
+
+    sMouseX = -1, sMouseY = -1;
+    sCursor = DEFAULT_CURSOR;
 }
 
 void CursorMouse::loadIMG()
@@ -61,7 +76,8 @@ void CursorMouse::loadIMG()
 
 void CursorMouse::setCursor(CURSOR_TYPE cursor)
 {
-    mTexture = &mCursor[cursor];
+    currentCursor = cursor;
+    mTexture = &mCursor[currentCursor];
 }
 
 //"When shooting, the mouse will recoil upwards."
@@ -95,6 +111,25 @@ bool CursorMouse::render()
     mTexture->render(mPosX, mPosY);
 
     return true;
+}
+
+void CursorMouse::saveCursor()
+{
+    SDL_GetMouseState(&sMouseX, &sMouseY);
+    sCursor = currentCursor;
+}
+
+void CursorMouse::loadSavedCursor()
+{
+    if (sMouseX == -1) {
+        printf("Cursor has not been saved before");
+        return;
+    }
+
+    SDL_WarpMouseInWindow(gWindow, sMouseX, sMouseY);
+    setCursor(sCursor);
+    //reset
+    sMouseX = sMouseY = -1;
 }
 
 #endif

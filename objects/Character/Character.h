@@ -38,6 +38,8 @@ private:
     int mVelX, mVelY;
     double mVelAngle;
 
+    SDL_RendererFlip flipMode;
+
     //border dimension
     int borderPosX;
     int borderPosY;
@@ -50,9 +52,13 @@ private:
     //check whether character died
     bool died;
 
+    //check if exist gravity
+    bool gravity;
+
     void loadIMG();
     void setToBorderPos();
     void increaseTimeRender();
+    void resetIMGRender();
 
     bool checkOutBorder();
     bool checkGroundCollision();
@@ -75,8 +81,14 @@ protected:
     void onDied();
     bool updateState() override;
     void renderTogRenderer() override;
+    void setSTexture(std::vector<LTexture> *newSTexture);
+    int getCurrentIMG() const;
 
+    void setGravity(bool state);
+    void setFlipMode(SDL_RendererFlip _flipMode);
+    void setBorder(int x, int y, int w, int h);
     void setAlpha(Uint8 alpha);
+    void setAngle(double value);
     void setVelX(int value);
     void setVelY(int value);
     void setVelAngle(double value);
@@ -106,12 +118,10 @@ Character::~Character()
 
 void Character::initCharacter(int x, int y)
 {
-    mTexture = &(*sTexture)[0];
+    resetIMGRender();
 
     died = false;
 
-    curTimeRender = 0;
-    curIMGRender = 0;
     imgChangeVel = 5;
 
     //Initialize the offsets
@@ -119,6 +129,7 @@ void Character::initCharacter(int x, int y)
     mPosY = y;
 
     mAngle = 0;
+    flipMode = SDL_FLIP_NONE;
     //Create the necessary SDL_Rects
     //mColliders.resize(11);
 
@@ -132,6 +143,8 @@ void Character::initCharacter(int x, int y)
     borderPosY = 0;
     borderWidth = SCREEN_WIDTH;
     borderHeight = groundPosY + 10;
+
+    gravity = true;
 
     if (direction == RIGHT) {
         limitAngleUpper = 0;
@@ -153,6 +166,8 @@ void Character::onDied()
 
     //continue moving
     mVelX += gInitVelocityYScene - gVelocityYScene;
+    //turn on gravity
+    setGravity(true);
 
     if (direction == RIGHT) {
         limitAngleUpper = 90;
@@ -196,12 +211,6 @@ void Character::loadIMG()
             break;
 
         case BOSS:
-            imgCount = 8;
-            sTexture->resize(imgCount);
-            for (int i = 0; i < imgCount; i++) {
-                (*sTexture)[i].loadFromFile(dragonImagePath + "Move/move" + std::to_string(i) + ".png", true, 34,177,76);
-            }
-
             direction = LEFT;
             initImgChangeVelWhenAir = 5;
         default:
@@ -284,7 +293,22 @@ bool Character::updateState()
 
 void Character::renderTogRenderer()
 {
-    mTexture->render(mPosX, mPosY, NULL, mAngle);
+    mTexture->render(mPosX, mPosY, NULL, mAngle, NULL, flipMode);
+}
+
+void Character::setSTexture(std::vector<LTexture> *newSTexture)
+{
+    sTexture = newSTexture;
+    imgCount = (int)sTexture->size();
+
+    resetIMGRender();
+}
+
+void Character::resetIMGRender()
+{
+    mTexture = &(*sTexture)[0];
+    curTimeRender = 0;
+    curIMGRender = 0;
 }
 
 bool Character::isStayingOnGround()
@@ -316,11 +340,18 @@ bool Character::checkOutBorder()
 
 void Character::decreaseVelAndAngle()
 {
+    if (!gravity) return;
+
     if (!isStayingOnGround()) {
-        addVelY(-1);
-        //Decrease Y velocity because of gravitation
+        addVelY(1);
+        //Increase Y velocity because of gravitation
     }
-    addVelAngle(-0.5);
+    if (direction == RIGHT) {
+        addVelAngle(-0.5);
+    }
+    else { //LEFT
+        addVelAngle(0.5);
+    }
 }
 
 bool Character::move()
@@ -329,7 +360,7 @@ bool Character::move()
     if (mVelX > gVelocityYScene) moved = true;
 
     mPosX += mVelX;
-    mPosY -= mVelY;
+    mPosY += mVelY;
     mAngle -= mVelAngle;
 
     if (mAngle > limitAngleUpper) {
@@ -348,7 +379,7 @@ bool Character::move()
         //not staying on the ground
         if (!isStayingOnGround()) {
             //set pos to ground pos
-            mPosY = groundPosY + 10 - getHeight();
+            mPosY = borderPosY + borderHeight - getHeight();
             moved = true;
         }
         else {
@@ -379,11 +410,34 @@ bool Character::isDied() const
     return died;
 }
 
+void Character::setGravity(bool state)
+{
+    gravity = state;
+}
+
+void Character::setFlipMode(SDL_RendererFlip _flipMode)
+{
+    flipMode = _flipMode;
+}
+
+void Character::setBorder(int x, int y, int w, int h)
+{
+    borderPosX = x;
+    borderPosY = y;
+    borderWidth = w;
+    borderHeight = h;
+}
+
 void Character::setAlpha(Uint8 alpha)
 {
     for (int img = 0; img < imgCount; img++) {
         (*sTexture)[img].setAlpha(alpha);
     }
+}
+
+void Character::setAngle(double value)
+{
+    mAngle = value;
 }
 
 void Character::setVelX(int value)
@@ -414,6 +468,11 @@ void Character::setVelAngle(double value)
 void Character::addVelAngle(double value)
 {
     mVelAngle += value;
+}
+
+int Character::getCurrentIMG() const
+{
+    return curIMGRender - 1;
 }
 
 #endif

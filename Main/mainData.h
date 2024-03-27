@@ -14,12 +14,13 @@ const std::string imagePath = "image/";
     const std::string characterImagePath = imagePath + "Character/";
         const std::string mainBirdImagePath = characterImagePath + "MainBird/";
         const std::string batImagePath = characterImagePath + "Bat/";
-        const std::string dragonImagePath = characterImagePath + "Boss/";
+        const std::string bossImagePath = characterImagePath + "Boss/";
     const std::string cursorMouseImagePath = imagePath + "CursorMouse/";
     const std::string gameOverImagePath = imagePath + "GameOver/";
     const std::string gunImagePath = imagePath + "Gun/";
     const std::string healthBarImagePath = imagePath + "HealthBar/";
     const std::string iconImagePath = imagePath + "Icon/";
+    const std::string itemImagePath = imagePath + "Item/";
     const std::string sceneImagePath = imagePath + "Scene/";
 
 const std::string fontPath = "font/";

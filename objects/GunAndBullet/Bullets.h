@@ -17,6 +17,8 @@ enum BULLET_TYPE
     WIN94_BULLET,
     SNIPER_BULLET,
 
+    SYRINGE_BULLET,
+
     BULLET_COUNT
 };
 
@@ -50,10 +52,10 @@ private:
     void renderTogRenderer() override;
 
 protected:
-    void init(int x, int y, double angle, BULLET_TYPE bulletType, int damage);
+    void init(int x, int y, BULLET_TYPE bulletType, int damage, int desX, int desY);
 
 public:
-    Bullets(int x, int y, double angle, BULLET_TYPE bulletType, int damage);
+    Bullets(int x, int y, BULLET_TYPE bulletType, int damage, int desX = -1, int desY = -1);
     ~Bullets();
 
     int getDamage();
@@ -65,20 +67,23 @@ const BulletProperties Bullets::bulletProperties[] = {
         {20, "ak47.png"}, //AK47
         {30, "win94.png"}, //Win94
         {50, "sniper.png"}, //Sniper
+
+        {20, "syringe.png"}, //Syringe
 };
 
 LTexture Bullets::sTexture[];
 
-Bullets::Bullets(int x, int y, double angle, BULLET_TYPE bulletType, int damage) : Object(false)
+//desPos = -1 if desPos = mousePos
+Bullets::Bullets(int x, int y, BULLET_TYPE bulletType, int damage, int desX, int desY) : Object(false)
 {
     loadIMG();
-    init(x, y, angle, bulletType, damage);
+    init(x, y, bulletType, damage, desX, desY);
 }
 
 Bullets::~Bullets()
 =default;
 
-void Bullets::init(int x, int y, double angle, BULLET_TYPE bulletType, int damage)
+void Bullets::init(int x, int y, BULLET_TYPE bulletType, int damage, int desX = -1, int desY = -1)
 {
     mPosX = x;
     mPosY = y;
@@ -88,11 +93,16 @@ void Bullets::init(int x, int y, double angle, BULLET_TYPE bulletType, int damag
     currentBullet = bulletType;
     mTexture = &sTexture[currentBullet];
 
-    mAngle = angle;
-
     //calculate Velocity
     mVelX = x, mVelY = y;
-    calculateVelocityToMouse(mVelX, mVelY, bulletProperties[currentBullet].speed);
+    if (desX == -1) {
+        calculateVelocityToMouse(mVelX, mVelY, bulletProperties[currentBullet].speed);
+        mAngle = angleToMousePos(mPosX, mPosY);
+    }
+    else {
+        calculateVelocityBetweenTwoPos(mVelX, mVelY, desX, desY, bulletProperties[currentBullet].speed);
+        mAngle = angleBetweenTwoPos(mPosX, mPosY, desX, desY);
+    }
 }
 
 bool Bullets::checkOutTheBorder()

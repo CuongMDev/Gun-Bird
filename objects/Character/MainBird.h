@@ -1,7 +1,7 @@
 #ifndef MAINBIRD_H
 #define MAINBIRD_H
 
-#include "../GunAndBullet/Guns.h"
+#include "../GunAndBullet/Gun.h"
 #include "../Scene/Pipe.h"
 #include "../Game/GameOver.h"
 #include "Character.h"
@@ -16,10 +16,10 @@ const int mainHealthBarPosY = 50;
 class MainBird : public Character
 {
 private:
-    const int maxHealth = 100;
+    const int maxHealth = 5;
     const int invisibleTime = 2000;
 
-    Guns gun;
+    Gun gun;
     HealthBar *health;
 
     //-1 if not invisible
@@ -157,7 +157,7 @@ void MainBird::updateVisibleState()
 
 void MainBird::jump()
 {
-    setVelY(15);
+    setVelY(-15);
     setVelAngle(8);
 }
 
