@@ -38,7 +38,7 @@ public:
     int getHeight() const override;
 };
 
-const std::pair<int, int> Pipe::randomTimeInterval = {1000, 3000};
+const std::pair<int, int> Pipe::randomTimeInterval = {1000, 2000};
 const std::pair<int, int> Pipe::randomHeightInterval = {50, SCREEN_HEIGHT / 2};
 Uint32 Pipe::nextCreatedTime = waitTimeBeforePlaying;
 
@@ -106,7 +106,7 @@ void Pipe::init(int height, bool flip)
 void Pipe::loadIMG()
 {
     //image: https://github.com/terroo/flappybird/tree/main
-    mTexture->loadFromFile(sceneImagePath + "pipe.png");
+    mTexture->loadFromFile(sceneImagePath + "pipe.png", true, 255, 255, 255);
 }
 
 int Pipe::getHeight() const

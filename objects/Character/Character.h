@@ -78,17 +78,19 @@ protected:
     //use when have gravitation
     void decreaseVelAndAngle();
 
-    void onDied();
+    virtual void onDied();
     bool updateState() override;
     void renderTogRenderer() override;
     void setSTexture(std::vector<LTexture> *newSTexture);
     int getCurrentIMG() const;
+    bool checkEndOfChain();
 
     void setGravity(bool state);
     void setFlipMode(SDL_RendererFlip _flipMode);
     void setBorder(int x, int y, int w, int h);
     void setAlpha(Uint8 alpha);
-    void setAngle(double value);
+
+    virtual void setAngle(double value);
     void setVelX(int value);
     void setVelY(int value);
     void setVelAngle(double value);
@@ -139,20 +141,26 @@ void Character::initCharacter(int x, int y)
     mVelAngle = 0;
 
     //init border dimension
-    borderPosX = 0;
-    borderPosY = 0;
-    borderWidth = SCREEN_WIDTH;
-    borderHeight = groundPosY + 10;
+    setBorder(0, 0, SCREEN_WIDTH, groundPosY + 10);
 
     gravity = true;
 
-    if (direction == RIGHT) {
-        limitAngleUpper = 0;
-        limitAngleLower = -45;
-    }
-    else if (direction == LEFT) {
-        limitAngleUpper = 45;
-        limitAngleLower = 0;
+    switch (mCharacterType) {
+        case MAIN_BIRD:
+            limitAngleUpper = 0;
+            limitAngleLower = -45;
+            break;
+        case BAT:
+            limitAngleUpper = 45;
+            limitAngleLower = 0;
+            break;
+        case BOSS:
+            limitAngleUpper = 180;
+            limitAngleLower = -180;
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -169,6 +177,7 @@ void Character::onDied()
     //turn on gravity
     setGravity(true);
 
+    setBorder(0, 0, SCREEN_WIDTH, groundPosY + getHeight() / 2);
     if (direction == RIGHT) {
         limitAngleUpper = 90;
     }
@@ -472,7 +481,14 @@ void Character::addVelAngle(double value)
 
 int Character::getCurrentIMG() const
 {
-    return curIMGRender - 1;
+    int answer = curIMGRender - 1;
+    if (answer == -1) answer += imgCount;
+    return answer;
+}
+
+bool Character::checkEndOfChain()
+{
+    return (getCurrentIMG() == imgCount - 1 && curTimeRender == imgChangeVel - 1);
 }
 
 #endif

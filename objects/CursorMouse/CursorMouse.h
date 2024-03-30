@@ -37,11 +37,17 @@ private:
 public:
     CursorMouse();
 
+    //change x1, y1 to velocityX1, velocityY1
+    void calculateVelocityToMouse(int &x, int &y, const double &speed);
+    double angleToMousePos(const int &x, const int &y);
+
     void setCursor(CURSOR_TYPE cursor);
     //When shooting, the mouse will recoil upwards.
     void recoilMouse(int xRecoil, int yRecoil);
     void move(int valueX, int valueY);
     bool render() override;
+
+    void getAimPos(int &x, int &y);
 
     void saveCursor();
     void loadSavedCursor();
@@ -59,7 +65,6 @@ CursorMouse::CursorMouse() : Object(false)
     currentCursor = DEFAULT_CURSOR;
 
     sMouseX = -1, sMouseY = -1;
-    sCursor = DEFAULT_CURSOR;
 }
 
 void CursorMouse::loadIMG()
@@ -72,6 +77,26 @@ void CursorMouse::loadIMG()
     mCursor[AK47_CURSOR].loadFromFile(cursorMouseImagePath + "ak47.png");
     mCursor[WIN94_CURSOR].loadFromFile(cursorMouseImagePath + "win94.png");
     mCursor[SNIPER_CURSOR].loadFromFile(cursorMouseImagePath + "sniper.png");
+}
+
+double CursorMouse::angleToMousePos(const int &x, const int &y)
+{
+    int mouseX, mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+    mouseX += getWidth() / 4;
+    mouseY += getHeight() / 4;
+
+    return angleBetweenTwoPos(x, y, mouseX, mouseY);
+}
+
+void CursorMouse::calculateVelocityToMouse(int &x, int &y, const double &speed)
+{
+    int mouseX, mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+    mouseX += getWidth() / 4;
+    mouseY += getHeight() / 4;
+
+    calculateVelocityBetweenTwoPos(x, y, mouseX, mouseY, speed);
 }
 
 void CursorMouse::setCursor(CURSOR_TYPE cursor)
@@ -130,6 +155,13 @@ void CursorMouse::loadSavedCursor()
     setCursor(sCursor);
     //reset
     sMouseX = sMouseY = -1;
+}
+
+void CursorMouse::getAimPos(int &x, int &y)
+{
+    SDL_GetMouseState(&x, &y);
+    x += getWidth() / 2;
+    y += getHeight() / 2;
 }
 
 #endif

@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <cmath>
-#include <numeric>
+#include <random>
 #include <vector>
 #include "../../Main/mainData.h"
 
@@ -13,10 +13,7 @@ bool checkCollision(const int &p1X, const int &p1Y, const int &p1W, const int &p
 void setPosWhenInternalCollision(int &p1X, int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H);
 //change x1, y1 to velocityX1, velocityY1
 void calculateVelocityBetweenTwoPos(int &x1, int &y1, const int &x2, const int &y2, const double &speed);
-//change x1, y1 to velocityX1, velocityY1
-void calculateVelocityToMouse(int &x, int &y, const double &speed);
 
-double angleToMousePos(const int &x, const int &y);
 double angleBetweenTwoPos(const int &x1, const int &y1, const int &x2, const int &y2);
 
 template<typename T>
@@ -30,7 +27,15 @@ double distance(const int &p1X, const int &p1Y, const int &p2X, const int &p2Y)
 }
 
 int getRandomNumber(const int &l, const int &r) {
-    return l + rand() % (r - l + 1);
+    // Seed the random number generator
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Define a uniform distribution for integer numbers between l and r
+    std::uniform_int_distribution<int> distribution(l, r);
+
+    // Generate and return a random number
+    return distribution(gen);
 }
 
 bool checkCollision(const int &p1X, const int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H)
@@ -67,22 +72,6 @@ void calculateVelocityBetweenTwoPos(int &x1, int &y1, const int &x2, const int &
     // Scale direction vector by speed to get velocity vector
     x1 = (dx * speed) + trunc(2 * (double)(SCREEN_HEIGHT - y2) / SCREEN_HEIGHT);
     y1 = dy * speed;
-}
-
-void calculateVelocityToMouse(int &x, int &y, const double &speed)
-{
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-
-    calculateVelocityBetweenTwoPos(x, y, mouseX, mouseY, speed);
-}
-
-double angleToMousePos(const int &x, const int &y)
-{
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-
-    return angleBetweenTwoPos(x, y, mouseX, mouseY);
 }
 
 double angleBetweenTwoPos(const int &x1, const int &y1, const int &x2, const int &y2)

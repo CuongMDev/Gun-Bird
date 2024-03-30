@@ -57,8 +57,8 @@ private:
     //The angle
     double mAngle;
 
-    //shoot when curTime=shootDelay
-    int curTime;
+    //shoot when curShootTime=shootDelay
+    int curShootTime;
 
     int curTimeRestoreAim;
 
@@ -156,7 +156,7 @@ void Gun::init()
     mouseHold = false;
     explosionEffect.init();
 
-    curTime = 0;
+    curShootTime = 0;
     curTimeRestoreAim = 0;
 
     setGun(PISTOL);
@@ -173,7 +173,7 @@ void Gun::init()
 
 void Gun::updateAngle()
 {
-    mAngle = angleToMousePos(mPosX, mPosY);
+    mAngle = cursorMouse->angleToMousePos(mPosX, mPosY);
 }
 
 void Gun::addBullet()
@@ -183,7 +183,7 @@ void Gun::addBullet()
 
     //Adjust the bullet to fit into the barrel of the gun
     explosionEffect.start(x, y - 10, mAngle);
-    bulletsList.add(new Bullets(x, y - 5, gunProperties[currentGun].bulletType, gunProperties[currentGun].damage));
+    bulletsList.add(new Bullets(x + 10, y - 10, gunProperties[currentGun].bulletType, gunProperties[currentGun].damage));
 
     curBullet[currentGun]--;
     updateBulletText();
@@ -193,7 +193,7 @@ void Gun::calculateGunHeadPos(int &x, int &y)
 {
     x = mPosX;
     y = mPosY + pivotY;
-    calculateVelocityToMouse(x, y, getWidth());
+    cursorMouse->calculateVelocityToMouse(x, y, getWidth());
 
     x += mPosX;
     y += mPosY + pivotY;
@@ -244,8 +244,8 @@ void Gun::shoot()
         return;
     }
 
-    if (curTime < gunProperties[currentGun].shootDelay) {
-        curTime++;
+    if (curShootTime < gunProperties[currentGun].shootDelay) {
+        curShootTime++;
     }
 
     if (!mouseHold) {
@@ -253,7 +253,7 @@ void Gun::shoot()
         return;
     }
 
-    if (curTime < gunProperties[currentGun].shootDelay) {
+    if (curShootTime < gunProperties[currentGun].shootDelay) {
         //It's not time to shoot yet
         return;
     }
@@ -267,7 +267,7 @@ void Gun::shoot()
 
     mVelRecoil = std::min(mVelRecoil + gunProperties[currentGun].recoil, gunProperties[currentGun].maxVelRecoil);
     //reset
-    curTime = 0;
+    curShootTime = 0;
     //recoil
     if (mVelRecoil < 3) {
         //3 first bullets have little recoil

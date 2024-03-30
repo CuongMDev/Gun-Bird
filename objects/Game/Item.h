@@ -93,13 +93,19 @@ void Item::randomItem(ObjectsList &pipeList)
 {
     itemType = getRandomWithPercent(itemPercent, std::vector<ITEM_TYPE>({SILENT_PISTOL_ITEM, GOLD_PISTOL_ITEM, AK47_ITEM, WIN94_ITEM, SNIPER_ITEM, HEALTH_ITEM}));
     mTexture = sTexture[itemType];
-    mPosX = SCREEN_WIDTH;
+    mPosX = SCREEN_WIDTH - getWidth();
     mPosY = getRandomNumber(circleTexture.getWidth() / 2, groundPosY - circleTexture.getWidth() / 2);
 
     //check collision with pipe
     std::_List_iterator<Object *> object;
     if (pipeList.getCollisionObject(*this, object)) {
         mPosY = groundPosY - mPosY;
+        if (pipeList.getCollisionObject(*this, object)) {
+            mPosY += groundPosY / 2;
+            if (pipeList.getCollisionObject(*this, object)) {
+                mPosY += groundPosY - mPosY;
+            }
+        }
     }
 
     itemValue = getRandomWithPercent<int>(valuePercent, {1, 2, 3, 4});

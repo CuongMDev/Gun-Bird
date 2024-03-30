@@ -60,7 +60,6 @@ void Background::renderTogRenderer()
     int tWidth = mTexture->getWidth();
     mTexture->render(mPosX, mPosY);
     mTexture->render(mPosX + tWidth, mPosY);
-    mTexture->render(mPosX + 2 * tWidth, mPosY);
 }
 
 #endif

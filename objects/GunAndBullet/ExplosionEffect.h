@@ -45,7 +45,7 @@ void ExplosionEffect::init()
 
 void ExplosionEffect::loadIMG()
 {
-    mTexture->loadFromFile(gunImagePath + "explosionEffect.png", true, 255, 255, 255);
+    mTexture->loadFromFile(gunImagePath + "explosionEffect.png");
 }
 
 bool ExplosionEffect::render()

@@ -20,14 +20,21 @@ private:
 
     const int bossDamage = 1;
     const int bossTimeBeforeBeingDeleted = 2000;
-    static Uint32 nextCreatedTime;
+    //-1 if it is having action
+    static Uint32 nextActionTime;
+
+    const int maxHealth = 10;
 
     const int attackPosX = SCREEN_WIDTH - 300;
     const int attackPosY = 50;
 
+    const int movePosX = SCREEN_WIDTH - 200;
+    const int movePosY = groundPosY / 2;
+
     static const int imgCount = 8;
 
     std::vector<LTexture> sTexture[ACTION_COUNT];
+    std::vector<LTexture> dieTexture;
 
     Action currentAction;
 
@@ -38,11 +45,14 @@ private:
 
     bool actionStarted;
 
+    int attackActionCount;
+    int curAttackActionTime;
+
     int bossSpeed;
 
     const int shootDelay = 13;
-    //shoot when curTime=shootDelay
-    int curTime;
+    //shoot when curShootTime=shootDelay
+    int curShootTime;
 
     bool checkDownTime();
 
@@ -50,12 +60,24 @@ private:
 
     //true if moved to x, y, if getThisVel = true, the vel in moveTo() will be set for this class
     bool moveTo(int x, int y, bool getThisVel = false);
-    void moveAction();
-    void attackAction();
-    void moveAttackAction();
-    void startAction();
+    bool moveAction();
+
+    bool attackAction();
+    bool moveAttackAction();
+    void randomMoveAttackDes(int &desX, int &desY);
+
+    //false if no action to do
+    bool startAction();
     void addSyringe();
-    void setAngle(double angle);
+    void setAngle(double angle) override;
+
+    void onDied() override;
+
+    void randomAction();
+    void checkRandomTime();
+    void reset();
+
+    bool addAttackAction();
 
     bool updateState() override;
     void renderTogRenderer() override;
@@ -65,18 +87,22 @@ public:
     ~Boss();
 
     void init();
+    void continueInit();
     void loadIMG();
+
+    ObjectsList &getSryngeList();
 
     void decreaseHealth(int value);
 };
 
-Uint32 Boss::nextCreatedTime = waitTimeBeforePlaying;
+Uint32 Boss::nextActionTime = waitTimeBeforePlaying;
 
 Boss::Boss() : Character(0, 0, BOSS)
 {
     loadIMG();
+    health = new HealthBar(0, 0, true, maxHealth);
+
     init();
-    setBorder(0, -getHeight(), SCREEN_WIDTH, SCREEN_HEIGHT + 2 * getHeight());
 }
 
 Boss::~Boss()
@@ -92,21 +118,43 @@ void Boss::loadIMG()
         sTexture[ATTACK][i].loadFromFile(bossImagePath + "Attack/attack" + std::to_string(i) + ".png", true, 34,177,76);
         sTexture[MOVE_ATTACK][i].loadFromFile(bossImagePath + "AttackMove/attackmove" + std::to_string(i) + ".png", true, 34,177,76);
     }
+
+    dieTexture.resize(1);
+    dieTexture[0].loadFromFile(bossImagePath + "Die/die0" + ".png", true, 34,177,76);
 }
 
 void Boss::init()
 {
-    initCharacter(SCREEN_WIDTH, 0);
-    curTime = 0;
-    downTime = -1;
-    bossSpeed = 10;
+    attackActionCount = 1;
+    curAttackActionTime = -1;
+    continueInit();
     setGravity(false);
-    health = new HealthBar(0, 0, true, 100);
+    setBorder(-getWidth(), -getHeight(), SCREEN_WIDTH + 2 * getWidth(), SCREEN_HEIGHT + 2 * getHeight());
+}
 
-    actionStarted = false;
-    setAction(MOVE_ATTACK);
-    setSTexture(&sTexture[MOVE]);
-    sryngeList.reset();
+void Boss::continueInit()
+{
+    attackActionCount++;
+
+    downTime = -1;
+    health->setHealth(maxHealth);
+
+    setAction(MOVE);
+    reset();
+    initCharacter(SCREEN_WIDTH + getHeight(), getRandomNumber(0, groundPosY - getHeight()));
+}
+
+void Boss::reset()
+{
+    curShootTime = 0;
+    nextActionTime = -1;
+    bossSpeed = 10;
+
+    setVelX(0);
+    setVelY(0);
+
+    Character::setAngle(0);
+    setFlipMode(SDL_FLIP_NONE);
 }
 
 bool Boss::checkDownTime()
@@ -135,12 +183,10 @@ bool Boss::updateState()
 
     if (!isDied()) {
         health->updatePos(mPosX + getWidth() / 2, mPosY - 10);
-        //go in screen
-//        if (mPosX + getWidth() > SCREEN_WIDTH - 50) {
-//            mPosX -= bossSpeed;
-//        }
 
-        startAction();
+        if (!startAction()) {
+            checkRandomTime();
+        }
     }
 
     return updated;
@@ -148,6 +194,9 @@ bool Boss::updateState()
 
 void Boss::renderTogRenderer()
 {
+    if (isDied() && checkDownTime()) {
+        return;
+    }
     if (!isDied()) {
         health->render();
     }
@@ -167,6 +216,8 @@ void Boss::decreaseHealth(int value)
 
 void Boss::setAction(const Action &action)
 {
+    actionStarted = false;
+    setSTexture(&sTexture[MOVE]);
     currentAction = action;
 }
 
@@ -194,30 +245,39 @@ bool Boss::moveTo(int x, int y, bool getThisVel)
     return false;
 }
 
-void Boss::startAction()
+bool Boss::startAction()
 {
     switch (currentAction) {
         case MOVE:
-            moveAction();
+            return moveAction();
             break;
         case ATTACK:
-            attackAction();
+            return attackAction();
             break;
         case MOVE_ATTACK:
-            moveAttackAction();
+            return moveAttackAction();
             break;
 
         default:
+            return false;
             break;
     }
 }
 
-void Boss::moveAction()
+bool Boss::moveAction()
 {
-    setSTexture(&sTexture[MOVE]);
+    if (!actionStarted) {
+        if (moveTo(movePosX, movePosY)) {
+            actionStarted = true;
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
-void Boss::attackAction()
+bool Boss::attackAction()
 {
     if (!actionStarted) {
         //move to pos before start action
@@ -233,14 +293,21 @@ void Boss::attackAction()
             //shoot
             addSyringe();
         }
-        if (currentIMG == 7) { //end of chain
+        if (checkEndOfChain()) { //end of chain
             //reset
-            curTime = 0;
+            if (addAttackAction()) {
+                return true;
+            }
+
+            reset();
+            return false;
         }
     }
+
+    return true;
 }
 
-void Boss::moveAttackAction()
+bool Boss::moveAttackAction()
 {
     //des will go to
     static int desX, desY = SCREEN_HEIGHT - getHeight();
@@ -250,35 +317,57 @@ void Boss::moveAttackAction()
         if (moveTo(mPosX, -getHeight())) {
             setSTexture(&sTexture[MOVE_ATTACK]);
             actionStarted = true;
-            bossSpeed = 20;
 
-            mPosX = getRandomNumber(0, SCREEN_WIDTH);
-            desX = getRandomNumber(0, SCREEN_WIDTH);
-            double angle = angleBetweenTwoPos(mPosX, mPosY, desX, desY);
-            setAngle(angle);
-
-            moveTo(desX, desY, true);
+            addAttackAction();
+            randomMoveAttackDes(desX, desY);
         }
     }
 
     if (actionStarted) {
-        //move until out the border
-        if (mPosY > SCREEN_WIDTH) {
+        //is in screen
+        if (mPosY > SCREEN_HEIGHT) {
+            if (addAttackAction()) {
+                randomMoveAttackDes(desX, desY);
+                return true;
+            }
+
             //reset
-            bossSpeed = 10;
-//            setAngle(0);
+            reset();
+            return false;
         }
-        else {
-        }
+    }
+
+    return true;
+}
+
+void Boss::randomAction()
+{
+    Action randomAct = static_cast<Action>(getRandomNumber(ATTACK, ACTION_COUNT - 1));
+    setAction(randomAct);
+}
+
+void Boss::checkRandomTime()
+{
+    if (currentAction != MOVE) {
+        setAction(MOVE);
+        return;
+    }
+
+    if (nextActionTime == -1) {
+        nextActionTime = getCurrentTime() + 2000;
+    }
+    else if (getCurrentTime() >= nextActionTime) {
+        randomAction();
     }
 }
 
+
 void Boss::addSyringe()
 {
-    curTime++;
-    if (curTime >= shootDelay) {
+    curShootTime++;
+    if (curShootTime >= shootDelay) {
         sryngeList.add(new Bullets(getRandomNumber(0, SCREEN_WIDTH), 0, SYRINGE_BULLET, bossDamage, getRandomNumber(0, SCREEN_WIDTH), SCREEN_HEIGHT));
-        curTime = 0;
+        curShootTime = 0;
     }
 }
 
@@ -293,7 +382,43 @@ void Boss::setAngle(double angle)
         setFlipMode(SDL_FLIP_NONE);
     }
     Character::setAngle(angle);
+}
 
+bool Boss::addAttackAction()
+{
+    curAttackActionTime++;
+    if (curAttackActionTime < attackActionCount) {
+        return true;
+    }
+
+    curAttackActionTime = -1;
+    return false;
+}
+
+void Boss::randomMoveAttackDes(int &desX, int &desY)
+{
+    bossSpeed = 20;
+
+    mPosX = getRandomNumber(0, SCREEN_WIDTH);
+    mPosY = -getHeight();
+    desX = getRandomNumber(0, SCREEN_WIDTH);
+    desY = SCREEN_HEIGHT - getHeight();
+
+    double angle = angleBetweenTwoPos(mPosX, mPosY, desX, desY);
+    setAngle(angle);
+
+    moveTo(desX, desY, true);
+}
+
+ObjectsList &Boss::getSryngeList()
+{
+    return sryngeList;
+}
+
+void Boss::onDied()
+{
+    setSTexture(&dieTexture);
+    Character::onDied();
 }
 
 #endif //BOSS_H

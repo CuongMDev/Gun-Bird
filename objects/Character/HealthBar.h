@@ -16,8 +16,8 @@ private:
     };
     static LTexture sTexture[HEALTH_BAR_COUNT];
 
-    const int HPWidth = 40;
-    const int HPHeight = 10;
+    const int HPWidth = 30;
+    const int HPHeight = 7;
 
     bool mHaveShell;
     bool mInEnemySide;

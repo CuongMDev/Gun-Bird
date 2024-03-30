@@ -8,13 +8,13 @@
 class Game
 {
 private:
-    const int gameRoundsPerLevel = 12;
+    const int gameRoundsPerLevel = 10;
 
     Background *background;
     Ground *ground;
     MainBird *mainBird;
     ObjectsList *batList;
-//    Boss *boss;
+    Boss *boss;
     GameOver *gameOver;
     ObjectsList *pipeList;
     Point *point;
@@ -31,6 +31,9 @@ private:
     void checkCollisionPipeAndPlayerBullet();
     void checkCollisionObjectsBirdAndBat();
     void checkCollisionObjectsBirdAndItems();
+    void checkCollisionObjectsBirdAndBoss();
+    void checkCollisionObjectsBirdAndSrynge();
+    void checkCollisionBossAndPlayerBullet();
     void checkGameOver();
 
 public:
@@ -51,7 +54,7 @@ Game::Game()
     ground = new Ground(groundPosX, groundPosY);
     mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
     batList = new ObjectsList();
-//    boss = new Boss();
+    boss = new Boss();
     gameOver = new GameOver();
     pipeList = new ObjectsList();
     point = new Point;
@@ -89,6 +92,8 @@ void Game::resetGame()
 
     point->init();
     item->init();
+
+    boss->init();
 
     gVelocityYScene = gInitVelocityYScene;
 
@@ -171,7 +176,7 @@ void Game::render()
     point->render();
     item->render(*pipeList);
     Bat::renderAll(batList);
-//    boss->render();
+    boss->render();
     if (!mainBird->render()) {
         gameOver->render();
     }
@@ -187,6 +192,9 @@ void Game::checkCollisionObjects()
     checkCollisionPipeAndPlayerBullet();
     checkCollisionObjectsBirdAndBat();
     checkCollisionObjectsBirdAndItems();
+    checkCollisionObjectsBirdAndBoss();
+    checkCollisionObjectsBirdAndSrynge();
+    checkCollisionBossAndPlayerBullet();
 }
 
 void Game::checkCollisionBirdAndEnemyBullet()
@@ -281,6 +289,42 @@ void Game::checkGameOver()
     if (mainBird->getCurrentHealth() == 0) {
         GameOver::onGameOver();
         handleGameOver();
+    }
+}
+
+void Game::checkCollisionObjectsBirdAndBoss()
+{
+    if (boss->isDied()) {
+        return;
+    }
+    if (mainBird->checkCollisionObject(*boss)) {
+        mainBird->changeHealth(-1);
+    }
+}
+
+void Game::checkCollisionObjectsBirdAndSrynge()
+{
+    if (boss->isDied()) {
+        return;
+    }
+    std::_List_iterator<Object *> object;
+    if (boss->getSryngeList().getCollisionObject(*mainBird, object)) {
+        mainBird->changeHealth(-1);
+    }
+}
+
+void Game::checkCollisionBossAndPlayerBullet()
+{
+    if (boss->isDied()) {
+        return;
+    }
+    std::_List_iterator<Object *> object;
+    auto &bulletList = mainBird->getBulletList();
+    if (bulletList.getCollisionObject(*boss, object)) {
+        Bullets *bullet = dynamic_cast<Bullets*>(*object);
+        boss->decreaseHealth(bullet->getDamage());
+
+        bulletList.deleteObject(object);
     }
 }
 

@@ -4,7 +4,7 @@
 #include "../Other/Object.h"
 
 const int groundPosX = 0;
-const int groundPosY = SCREEN_HEIGHT - 79;
+const int groundPosY = SCREEN_HEIGHT - 59;
 
 class Ground : public Object
 {

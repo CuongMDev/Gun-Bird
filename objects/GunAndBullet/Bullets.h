@@ -6,8 +6,8 @@
 #include "../Scene/Pipe.h"
 #include "../Other/ObjectsList.h"
 
-const int pivotX = 20;
-const int pivotY = 10;
+const int pivotX = 15;
+const int pivotY = 7;
 
 enum BULLET_TYPE
 {
@@ -37,6 +37,9 @@ private:
 
     BULLET_TYPE currentBullet;
 
+    //use to save desX, desY
+    int sDesX, sDesY;
+
     int mDamage;
     //The velocity
     int mVelX, mVelY;
@@ -47,6 +50,8 @@ private:
     bool move();
 
     void loadIMG();
+    bool noNeedToCalculateVel;
+    void calculateVelocity();
 
     bool updateState() override;
     void renderTogRenderer() override;
@@ -85,24 +90,24 @@ Bullets::~Bullets()
 
 void Bullets::init(int x, int y, BULLET_TYPE bulletType, int damage, int desX = -1, int desY = -1)
 {
-    mPosX = x;
-    mPosY = y;
-
     mDamage = damage;
+
+    noNeedToCalculateVel = false;
 
     currentBullet = bulletType;
     mTexture = &sTexture[currentBullet];
 
-    //calculate Velocity
-    mVelX = x, mVelY = y;
-    if (desX == -1) {
-        calculateVelocityToMouse(mVelX, mVelY, bulletProperties[currentBullet].speed);
-        mAngle = angleToMousePos(mPosX, mPosY);
+    sDesX = desX; sDesY = desY;
+    if (sDesX == -1) {
+        cursorMouse->getAimPos(sDesX, sDesY);
     }
-    else {
-        calculateVelocityBetweenTwoPos(mVelX, mVelY, desX, desY, bulletProperties[currentBullet].speed);
-        mAngle = angleBetweenTwoPos(mPosX, mPosY, desX, desY);
-    }
+
+    mPosX = x;
+    mPosY = y;
+
+    mAngle = angleBetweenTwoPos(mPosX, mPosY, sDesX, sDesY);
+
+    calculateVelocity();
 }
 
 bool Bullets::checkOutTheBorder()
@@ -131,6 +136,20 @@ void Bullets::loadIMG()
     }
 }
 
+void Bullets::calculateVelocity()
+{
+    if (noNeedToCalculateVel) {
+        return;
+    }
+    //calculate Velocity
+    mVelX = mPosX + getWidth() / 2, mVelY = mPosY + getHeight();
+    calculateVelocityBetweenTwoPos(mVelX, mVelY, sDesX, sDesY, bulletProperties[currentBullet].speed);
+
+    if (distance(mPosX, mPosY, sDesX, sDesY) < std::max(100, getWidth() + getHeight())) {
+        noNeedToCalculateVel = true;
+    }
+}
+
 bool Bullets::move()
 {
     mPosX += mVelX;
@@ -146,6 +165,7 @@ int Bullets::getDamage()
 }
 
 bool Bullets::updateState() {
+    calculateVelocity();
     if (move()) return true;
     return false;
 }
