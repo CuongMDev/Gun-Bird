@@ -4,10 +4,13 @@
 #include <SDL2/SDL.h>
 
 const int gInitVelocityYScene = 5;
+const int speedChangeWhenLevelChange = 3;
 
 const int waitTimeBeforePlaying = 2000;
 
-int gVelocityYScene = gInitVelocityYScene;
+//change when level change
+int gCurVelocityYScene;
+int gVelocityYScene;
 
 bool gamePaused = false;
 

@@ -173,7 +173,7 @@ void Character::onDied()
     died = true;
 
     //continue moving
-    mVelX += gInitVelocityYScene - gVelocityYScene;
+    mVelX += gCurVelocityYScene - gVelocityYScene;
     //turn on gravity
     setGravity(true);
 

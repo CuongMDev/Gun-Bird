@@ -26,7 +26,6 @@ private:
     void setRandomTime(Uint32 time);
     void addRandomTime(Uint32 addTime);
     int randomTime;
-    int mVelX;
 
     int itemValue;
     bool isRendering;
@@ -72,7 +71,7 @@ void Item::loadIMG()
 
 bool Item::move()
 {
-    mPosX += mVelX;
+    mPosX -= gVelocityYScene;
     if (mPosX + mTexture->getWidth() < 0) {
         return false;
     }
@@ -125,7 +124,6 @@ Item::~Item()
 void Item::init()
 {
     setRandomTime(getCurrentTime() + 10000);
-    mVelX = -gInitVelocityYScene;
     //to avoid collision with bird
     mPosX = SCREEN_WIDTH + 1;
     mPosY = 0;

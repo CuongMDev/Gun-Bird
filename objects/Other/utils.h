@@ -32,10 +32,10 @@ int getRandomNumber(const int &l, const int &r) {
     std::mt19937 gen(rd());
 
     // Define a uniform distribution for integer numbers between l and r
-    std::uniform_int_distribution<int> distribution(l, r);
+    std::uniform_int_distribution<int> distribution(0, 1000);
 
     // Generate and return a random number
-    return distribution(gen);
+    return (distribution(gen) * distribution(gen) * distribution(gen) + distribution(gen) + distribution(gen) + distribution(gen)) % (r - l + 1) + l;
 }
 
 bool checkCollision(const int &p1X, const int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H)

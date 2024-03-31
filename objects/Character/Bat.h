@@ -20,6 +20,7 @@ private:
 
     HealthBar *health;
     int downTime;
+    bool hasBeenDamaged;
 
     bool checkDownTime();
 
@@ -56,7 +57,7 @@ void Bat::init(int x, int y)
     downTime = -1;
     initCharacter(x, y);
     setVelX(-batSpeed);
-    health = new HealthBar(0, 0, true, 12);
+    health = new HealthBar(0, 0, true, false, 12);
 }
 
 bool Bat::updateState()
@@ -69,6 +70,13 @@ bool Bat::updateState()
     if (mPosX <= 0) {
         updated = false;
     }
+
+    if (hasBeenDamaged) {
+        setAlpha(100);
+        hasBeenDamaged = false;
+    }
+    else setAlpha(255);
+
     if (!isDied()) {
         health->updatePos(mPosX + getWidth() / 2, mPosY - 10);
     }
@@ -119,6 +127,8 @@ void Bat::decreaseHealth(int value)
         onDied();
         return;
     }
+
+    hasBeenDamaged = true;
 }
 
 void Bat::renderAll(ObjectsList *batList)

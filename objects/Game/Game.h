@@ -23,6 +23,9 @@ private:
     static void handleGameOver();
     void resetGame();
     void changeGamePaused();
+    void addPoint(bool force = false);
+
+    void upGameLevel();
 
     //check collision
     void checkCollisionObjects();
@@ -40,6 +43,7 @@ public:
     Game();
     ~Game();
 
+    void init();
     void handleEvent(SDL_Event *e);
     void handleKey(const Uint8 *currentKeyStates);
     void handleGameOverButtonClicked(BUTTON buttonClicked);
@@ -84,6 +88,8 @@ void Game::handleGameOver()
 
 void Game::resetGame()
 {
+    init();
+
     pipeList->reset();
     Pipe::resetTime();
 
@@ -99,6 +105,18 @@ void Game::resetGame()
 
     gameOver->reset();
     mainBird->init(mainBirdPosX, mainBirdPosY);
+}
+
+void Game::upGameLevel()
+{
+    gCurVelocityYScene += speedChangeWhenLevelChange;
+    gVelocityYScene = gCurVelocityYScene;
+}
+
+void Game::init()
+{
+    gCurVelocityYScene = gInitVelocityYScene;
+    gVelocityYScene = gInitVelocityYScene;
 }
 
 void Game::changeGamePaused()
@@ -217,7 +235,7 @@ void Game::checkCollisionBirdAndEnemyBullet()
                 //next bat
                 objectA++;
                 objectB = bulletList.getBegin();
-                point->addPoint();
+                addPoint();
             }
         }
         else {
@@ -323,8 +341,24 @@ void Game::checkCollisionBossAndPlayerBullet()
     if (bulletList.getCollisionObject(*boss, object)) {
         Bullets *bullet = dynamic_cast<Bullets*>(*object);
         boss->decreaseHealth(bullet->getDamage());
+        if (boss->isDied()) {
+            addPoint(true);
+            if (boss->isDied()) {
+                upGameLevel();
+            }
+        }
 
         bulletList.deleteObject(object);
+    }
+}
+
+void Game::addPoint(bool force)
+{
+    if (force || point->getCurrentPoint() % gameRoundsPerLevel != gameRoundsPerLevel - 1) {
+        point->addPoint();
+        if (point->getCurrentPoint() % gameRoundsPerLevel == gameRoundsPerLevel - 1) {
+            boss->continueInit();
+        }
     }
 }
 

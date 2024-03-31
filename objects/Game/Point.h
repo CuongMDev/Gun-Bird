@@ -17,6 +17,7 @@ public:
 
     void init();
     void addPoint();
+    int getCurrentPoint() const;
 };
 
 Point::Point()
@@ -44,6 +45,11 @@ void Point::addPoint()
 {
     pointCount++;
     setText();
+}
+
+int Point::getCurrentPoint() const
+{
+    return pointCount;
 }
 
 Point::~Point()

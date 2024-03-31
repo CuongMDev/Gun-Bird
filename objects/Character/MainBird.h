@@ -53,7 +53,7 @@ public:
 
 MainBird::MainBird(int x, int y) : Character(x, y, MAIN_BIRD)
 {
-    health = new HealthBar(mainHealthBarPosX, mainHealthBarPosY, false, maxHealth);
+    health = new HealthBar(mainHealthBarPosX, mainHealthBarPosY, false, true, maxHealth);
     init(x, y);
 }
 

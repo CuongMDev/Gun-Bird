@@ -6,6 +6,9 @@
 #include "HealthBar.h"
 #include "../GunAndBullet/Bullets.h"
 
+const int bossHealthBarPosX = SCREEN_WIDTH - 200;
+const int bossHealthBarPosY = 50;
+
 class Boss : public Character
 {
 private:
@@ -23,7 +26,7 @@ private:
     //-1 if it is having action
     static Uint32 nextActionTime;
 
-    const int maxHealth = 10;
+    int maxHealth;
 
     const int attackPosX = SCREEN_WIDTH - 300;
     const int attackPosY = 50;
@@ -32,6 +35,8 @@ private:
     const int movePosY = groundPosY / 2;
 
     static const int imgCount = 8;
+    const int initMaxHealth = 100;
+    const int healthAddPerRound = 30;
 
     std::vector<LTexture> sTexture[ACTION_COUNT];
     std::vector<LTexture> dieTexture;
@@ -49,6 +54,7 @@ private:
     int curAttackActionTime;
 
     int bossSpeed;
+    bool hasBeenDamaged;
 
     const int shootDelay = 13;
     //shoot when curShootTime=shootDelay
@@ -100,7 +106,7 @@ Uint32 Boss::nextActionTime = waitTimeBeforePlaying;
 Boss::Boss() : Character(0, 0, BOSS)
 {
     loadIMG();
-    health = new HealthBar(0, 0, true, maxHealth);
+    health = new HealthBar(bossHealthBarPosX, bossHealthBarPosY, true, true, 0);
 
     init();
 }
@@ -125,11 +131,14 @@ void Boss::loadIMG()
 
 void Boss::init()
 {
-    attackActionCount = 1;
+    attackActionCount = 0;
     curAttackActionTime = -1;
-    continueInit();
-    setGravity(false);
-    setBorder(-getWidth(), -getHeight(), SCREEN_WIDTH + 2 * getWidth(), SCREEN_HEIGHT + 2 * getHeight());
+    maxHealth = initMaxHealth - healthAddPerRound;
+
+    //set not appear
+    setAction(MOVE);
+    onDied();
+    downTime = 0;
 }
 
 void Boss::continueInit()
@@ -137,11 +146,19 @@ void Boss::continueInit()
     attackActionCount++;
 
     downTime = -1;
+    maxHealth += healthAddPerRound;
+    health->setMaxHealth(maxHealth);
     health->setHealth(maxHealth);
+
+    hasBeenDamaged = false;
+    sryngeList.reset();
 
     setAction(MOVE);
     reset();
     initCharacter(SCREEN_WIDTH + getHeight(), getRandomNumber(0, groundPosY - getHeight()));
+
+    setGravity(false);
+    setBorder(-getWidth(), -getHeight(), SCREEN_WIDTH + 2 * getWidth(), SCREEN_HEIGHT + 2 * getHeight());
 }
 
 void Boss::reset()
@@ -172,6 +189,10 @@ bool Boss::checkDownTime()
 
 bool Boss::updateState()
 {
+    if (isDied() && checkDownTime()) {
+        return false;
+    }
+
     bool updated = Character::updateState();
     if (!updated) {
         //check downtime before death
@@ -181,11 +202,17 @@ bool Boss::updateState()
         updated = false;
     }
 
-    if (!isDied()) {
-        health->updatePos(mPosX + getWidth() / 2, mPosY - 10);
+    if (hasBeenDamaged) {
+        setAlpha(100);
+        hasBeenDamaged = false;
+    }
+    else setAlpha(255);
 
+    if (!isDied()) {
         if (!startAction()) {
-            checkRandomTime();
+            if (!GameOver::gameIsOver() || currentAction != MOVE) {
+                checkRandomTime();
+            }
         }
     }
 
@@ -197,9 +224,7 @@ void Boss::renderTogRenderer()
     if (isDied() && checkDownTime()) {
         return;
     }
-    if (!isDied()) {
-        health->render();
-    }
+    health->render();
 
     sryngeList.renderAll();
     Character::renderTogRenderer();
@@ -212,6 +237,8 @@ void Boss::decreaseHealth(int value)
         onDied();
         return;
     }
+
+    hasBeenDamaged = true;
 }
 
 void Boss::setAction(const Action &action)

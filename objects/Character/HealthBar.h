@@ -29,13 +29,14 @@ private:
     void renderTogRenderer() override;
 
 public:
-    HealthBar(int x, int y, bool inEnemySide, int maxHP);
+    HealthBar(int x, int y, bool inEnemySide, bool haveShell, int maxHP);
     ~HealthBar();
 
-    void init(int x, int y, bool inEnemySide, int maxHP);
+    void init(int x, int y, bool inEnemySide, bool haveShell, int maxHP);
 
     void updatePos(int x, int y);
     void setHealth(int value);
+    void setMaxHealth(int value);
     void changeHealth(int value);
 
     int getCurrentHealth() const;
@@ -43,20 +44,21 @@ public:
 
 LTexture HealthBar::sTexture[] = {};
 
-HealthBar::HealthBar(int x, int y, bool inEnemySide, int maxHP) : Object(false)
+HealthBar::HealthBar(int x, int y, bool inEnemySide, bool haveShell, int maxHP) : Object(false)
 {
     loadIMG();
-    init(x, y, inEnemySide, maxHP);
+    init(x, y, inEnemySide, haveShell, maxHP);
 }
 
 HealthBar::~HealthBar()
 = default;
 
-void HealthBar::init(int x, int y, bool inEnemySide, int maxHP)
+void HealthBar::init(int x, int y, bool inEnemySide, bool haveShell, int maxHP)
 {
     mPosX = x;
     mPosY = y;
     mInEnemySide = inEnemySide;
+    mHaveShell = haveShell;
     mMaxHP = mCurrentHP = maxHP;
 
     mTexture = &sTexture[HEALTH_BAR_STATE_PLAYER];
@@ -70,11 +72,15 @@ void HealthBar::updatePos(int x, int y)
 
 void HealthBar::setHealth(int value)
 {
-    mCurrentHP = mMaxHP;
+    mCurrentHP = value;
     if (mCurrentHP < 0) mCurrentHP = 0;
     if (mCurrentHP > mMaxHP) mCurrentHP = mMaxHP;
 }
 
+void HealthBar::setMaxHealth(int value) {
+    mMaxHP = value;
+    if (mMaxHP < 0) mMaxHP = 0;
+}
 
 void HealthBar::changeHealth(int value)
 {
@@ -103,11 +109,19 @@ void HealthBar::renderTogRenderer()
     clip.x = 0, clip.y = 0;
     clip.w = barLength, clip.h = getHeight();
     if (!mInEnemySide) {
-        sTexture[HEALTH_BAR_SHELL].render(mPosX, mPosY);
+        if (mHaveShell) {
+            sTexture[HEALTH_BAR_SHELL].render(mPosX, mPosY);
+        }
         sTexture[HEALTH_BAR_STATE_PLAYER].render(mPosX + HPWidth, mPosY + HPHeight, &clip);
     }
     else {
-        sTexture[HEALTH_BAR_STATE_ENEMY].render(mPosX, mPosY, &clip, 0, NULL, SDL_FLIP_NONE, -70);
+        if (mHaveShell) {
+            sTexture[HEALTH_BAR_SHELL].render(mPosX, mPosY, NULL);
+            sTexture[HEALTH_BAR_STATE_ENEMY].render(mPosX+ HPWidth, mPosY + HPHeight, &clip);
+        }
+        else {
+            sTexture[HEALTH_BAR_STATE_ENEMY].render(mPosX, mPosY, &clip, 0, NULL, SDL_FLIP_NONE, -70);
+        }
     }
 }
 
