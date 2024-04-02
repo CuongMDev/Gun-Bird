@@ -3,6 +3,7 @@
 
 #include "Object.h"
 #include <list>
+#include <memory>
 
 class ObjectsList
 {
@@ -47,7 +48,7 @@ void ObjectsList::add(Object *object)
 void ObjectsList::reset()
 {
     //clear bats
-    for (auto object : objectList) {
+    for (auto &object : objectList) {
         delete object;
     }
     objectList.clear();
@@ -102,6 +103,7 @@ bool ObjectsList::getCollisionObjects(ObjectsList &objectsListB, listIter &objec
 
     return false;
 }
+
 
 listIter ObjectsList::deleteObject(const listIter &object)
 {

@@ -4,6 +4,7 @@
 #include "../objects/CursorMouse/CursorMouse.h"
 #include <ctime>
 #include <list>
+#include <SDL2/SDL_mixer.h>
 #include "../objects/Other/Font.h"
 
 bool init();
@@ -73,6 +74,13 @@ bool initWindow()
         return false;
     }
 
+    //Initialize SDL_mixer
+    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+    {
+        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+        return false;
+    }
+
     return true;
 }
 
@@ -102,6 +110,8 @@ void close()
     gRenderer = NULL;
 
     //Quit SDL subsystems
+    //Quit SDL subsystems
+    Mix_Quit();
     IMG_Quit();
     SDL_Quit();
 }

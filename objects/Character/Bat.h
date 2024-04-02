@@ -50,7 +50,9 @@ Bat::Bat(int x, int y) : Character(x, y, BAT)
 }
 
 Bat::~Bat()
-= default;
+{
+    delete health;
+}
 
 void Bat::init(int x, int y)
 {

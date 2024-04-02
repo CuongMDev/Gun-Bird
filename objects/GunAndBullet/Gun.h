@@ -34,12 +34,24 @@ struct GunProperties;
 class Gun : public Object
 {
 private:
+    enum GUN_SOUND_TYPE
+    {
+        SHOOT_SOUND,
+        RELOAD_SOUND,
+        PULL_OUT_SOUND,
+
+        GUN_SOUND_COUNT
+    };
+
     static const GunProperties gunProperties[GUN_COUNT];
+
+    std::vector<Mix_Chunk*> gunSound[GUN_COUNT][3];
+    static const std::string soundName[GUN_SOUND_COUNT];
+    const int pullOutSoundTime = 17;
+    const int reloadSoundTime = 27;
 
     static LTexture sTexture[GUN_COUNT];
     GUN_TYPE currentGun;
-
-    static const int reloadingTime;
 
     LTexture bulletLabel;
 
@@ -51,9 +63,6 @@ private:
 
     ExplosionEffect explosionEffect;
 
-    //-1 if not reloading
-    int reloadingEndTime;
-
     //The angle
     double mAngle;
 
@@ -61,30 +70,44 @@ private:
     int curShootTime;
 
     int curTimeRestoreAim;
-
     int mVelRecoil;
 
     bool mouseHold;
 
+    int curSoundTime;
+
+    //=SoundCount if it is not playing
+    GUN_SOUND_TYPE curPlayingSound;
+
     void loadIMG();
+    void loadSound();
 
     void updateAngle();
     void addBullet();
     void calculateGunHeadPos(int &x, int &y);
     void restoreAim();
     void updateBulletText();
-    //check and shoot
+    void checkShoot();
     void shoot();
-    void checkReloading();
     void cancelReloading();
+    bool checkReloading();
     //change gun to currentGun + val
     void switchGun(bool rightSwitch);
     bool checkGunStillHasBullets(GUN_TYPE gunType);
+
+    void setCurSound(GUN_SOUND_TYPE soundType = GUN_SOUND_COUNT);
+
+    void activeShootSound();
+    void activePullOutSound();
+    void activeReloadSound();
+    void playingSound();
+
     bool updateState() override;
     void renderTogRenderer() override;
 
 public:
     Gun();
+    ~Gun();
 
     ObjectsList &getBulletList();
 
@@ -92,14 +115,12 @@ public:
     void handleEvent(SDL_Event *e);
     void setPosAndAngle(int x, int y);
     void setGun(GUN_TYPE gunType);
-    void reload();
+    //true if reloading finished
+    void reload(bool finished = false);
     void addBulletCount(GUN_TYPE gunType, int bulletMagazine);
-    bool render() override;
 
     static LTexture *getTexture(const GUN_TYPE &gunType);
 };
-
-const int Gun::reloadingTime = 2000;
 
 struct GunProperties
 {
@@ -114,25 +135,44 @@ struct GunProperties
 
     CURSOR_TYPE cursorType;
 
-    std::string imageName;
+    std::string name;
 };
 
 const GunProperties Gun::gunProperties[] = {
-        {3, 17, 1, 3, 15, 7, PISTOL_BULLET, PISTOL_CURSOR, "pistol.png"}, //pistol
-        {3, 17, 1, 3, 10, 30, PISTOL_BULLET, PISTOL_CURSOR, "silentpistol.png"}, //silent pistol
-        {20, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, GOLDPISTOL_CURSOR, "goldpistol.png"}, //gold pistol
-        {5, 7, 1, 7, 5, 30,AK47_BULLET, AK47_CURSOR, "ak47.png"}, //AK47
-        {7, 20, 10, 20, 20, 8,WIN94_BULLET, WIN94_CURSOR, "win94.png"}, //Win94
-        {12, 30, 20, 20, 30, 5, SNIPER_BULLET, SNIPER_CURSOR, "sniper.png"}, //Sniper
+        {3, 17, 1, 3, 15, 7, PISTOL_BULLET, PISTOL_CURSOR, "pistol"}, //pistol
+        {3, 17, 1, 3, 10, 30, PISTOL_BULLET, PISTOL_CURSOR, "silentpistol"}, //silent pistol
+        {30, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, GOLDPISTOL_CURSOR, "goldpistol"}, //gold pistol
+        {5, 7, 1, 7, 7, 30,AK47_BULLET, AK47_CURSOR, "ak47"}, //AK47
+        {7, 20, 10, 20, 20, 8,WIN94_BULLET, WIN94_CURSOR, "win94"}, //Win94
+        {12, 30, 20, 20, 30, 5, SNIPER_BULLET, SNIPER_CURSOR, "sniper"}, //Sniper
 };
+const std::string Gun::soundName[] = {
+        {"0"}, //shoot
+        {"reload"}, //reload
+        {"pullout"}, //pullout
+};
+
 LTexture Gun::sTexture[];
 
 Gun::Gun() : Object(false)
 {
     loadIMG();
+    loadSound();
     init();
     updateBulletText();
 }
+
+Gun::~Gun()
+{
+    for (auto gunType = 0; gunType < GUN_COUNT; gunType++) {
+        for (auto soundType = 0; soundType < GUN_SOUND_COUNT; soundType++) {
+            for (auto &i : gunSound[gunType][soundType]) {
+                Mix_FreeChunk(i);
+            }
+        }
+    }
+}
+
 
 ObjectsList &Gun::getBulletList()
 {
@@ -143,9 +183,28 @@ void Gun::loadIMG()
 {
     //image: https://midnitepixelated.itch.io/pixel-guns
     for (auto gunType = 0; gunType < GUN_COUNT; gunType++) {
-        sTexture[gunType].loadFromFile(gunImagePath + gunProperties[gunType].imageName, true, 67, 76, 111);
+        sTexture[gunType].loadFromFile(gunImagePath + gunProperties[gunType].name + ".png", true, 67, 76, 111);
     }
 }
+
+void Gun::loadSound()
+{
+    for (auto gunType = 0; gunType < GUN_COUNT; gunType++) {
+        for (auto soundType = 0; soundType < GUN_SOUND_COUNT; soundType++) {
+            for (int count = 1;; count++) {
+                std::string path = gunSoundPath + gunProperties[gunType].name + '/' + gunProperties[gunType].name + '_' + soundName[soundType] + std::to_string(count) + ".wav";
+                Mix_Chunk *mixChunk = Mix_LoadWAV(path.c_str());
+
+                if (mixChunk == NULL) {
+                    delete mixChunk;
+                    break;
+                }
+                gunSound[gunType][soundType].push_back(mixChunk);
+            }
+        }
+    }
+}
+
 
 void Gun::init()
 {
@@ -159,6 +218,8 @@ void Gun::init()
     curShootTime = 0;
     curTimeRestoreAim = 0;
 
+    //to make set gun not be ignored
+    currentGun = GUN_COUNT;
     setGun(PISTOL);
 
     memset(curBullet, 0, sizeof(curBullet));
@@ -230,8 +291,10 @@ void Gun::updateBulletText()
     bulletLabel.loadFromRenderedText(std::to_string(curBullet[currentGun]) + '/' + bulletLeftText, firaFonts[FontStyle::Bold], {0, 0, 0});
 }
 
-void Gun::shoot()
-{
+void Gun::checkShoot() {
+    if (curPlayingSound != SHOOT_SOUND && curPlayingSound != GUN_SOUND_COUNT) {
+        return;
+    }
     //no bullet
     if (curBullet[currentGun] == 0) {
         if (!mouseHold) {
@@ -240,14 +303,15 @@ void Gun::shoot()
         return;
     }
     //is reloading
-    if (reloadingEndTime != -1) {
+    if (checkReloading()) {
         return;
     }
-
+    //increase cur shoot time
     if (curShootTime < gunProperties[currentGun].shootDelay) {
         curShootTime++;
     }
 
+    //check mouse hold
     if (!mouseHold) {
         restoreAim();
         return;
@@ -258,7 +322,13 @@ void Gun::shoot()
         return;
     }
 
+    shoot();
+}
+
+void Gun::shoot()
+{
     addBullet();
+    activeShootSound();
 
     //increase time restore aim
     if (curTimeRestoreAim < gunProperties[currentGun].timeRestoreAim * 2) {
@@ -280,7 +350,12 @@ void Gun::shoot()
 
 void Gun::cancelReloading()
 {
-    reloadingEndTime = -1;
+    setCurSound();
+}
+
+bool Gun::checkReloading()
+{
+    return (curPlayingSound == RELOAD_SOUND);
 }
 
 void Gun::switchGun(bool rightSwitch)
@@ -312,32 +387,46 @@ bool Gun::checkGunStillHasBullets(GUN_TYPE gunType)
     return false;
 }
 
-void Gun::checkReloading()
+void Gun::setCurSound(Gun::GUN_SOUND_TYPE soundType)
 {
-    if (reloadingEndTime == -1) {
-        return;
-    }
-    if (getCurrentTime() <= reloadingEndTime) {
-        return;
-    }
-
-//------------------------------------------------
-    //reset
-    cancelReloading();
-
-    //starting reloading
-    if (bulletLeft[currentGun] == -1) {
-        curBullet[currentGun] = gunProperties[currentGun].bulletInTape;
-    } //infinity
-    else {
-        int addCount = std::min(bulletLeft[currentGun], gunProperties[currentGun].bulletInTape - curBullet[currentGun]);
-        curBullet[currentGun] += addCount;
-        bulletLeft[currentGun] -= addCount;
-    }
-
-    updateBulletText();
+    //reset;
+    curSoundTime = 0;
+    curPlayingSound = soundType;
 }
 
+void Gun::activeShootSound()
+{
+    int soundCount = (int)gunSound[currentGun][SHOOT_SOUND].size();
+    Mix_PlayChannel(-1, gunSound[currentGun][SHOOT_SOUND][getRandomNumber(0, soundCount - 1)], 0);
+    setCurSound();
+}
+
+void Gun::activePullOutSound()
+{
+    int soundCount = (int)gunSound[currentGun][PULL_OUT_SOUND].size();
+    if (curSoundTime == soundCount * pullOutSoundTime - pullOutSoundTime / 2) {
+        setCurSound();
+        return;
+    }
+    if (curSoundTime % pullOutSoundTime == 0) {
+        Mix_PlayChannel(-1, gunSound[currentGun][PULL_OUT_SOUND][curSoundTime / pullOutSoundTime], 0);
+    }
+    curSoundTime++;
+}
+
+void Gun::activeReloadSound()
+{
+    int soundCount = (int)gunSound[currentGun][RELOAD_SOUND].size();
+    if (curSoundTime == soundCount * reloadSoundTime + reloadSoundTime / 2) {
+        reload(true);
+        setCurSound(PULL_OUT_SOUND);
+        return;
+    }
+    if (curSoundTime % reloadSoundTime == 0 && curSoundTime / reloadSoundTime < soundCount) {
+        Mix_PlayChannel(-1, gunSound[currentGun][RELOAD_SOUND][curSoundTime / reloadSoundTime], 0);
+    }
+    curSoundTime++;
+}
 
 void Gun::handleEvent(SDL_Event *e)
 {
@@ -348,7 +437,7 @@ void Gun::handleEvent(SDL_Event *e)
                 reload();
                 break;
 
-            //switch gun
+                //switch gun
             case SDLK_q:
                 switchGun(false);
                 break;
@@ -356,7 +445,7 @@ void Gun::handleEvent(SDL_Event *e)
                 switchGun(true);
                 break;
 
-            //-------
+                //-------
 
             default:
                 break;
@@ -380,8 +469,8 @@ void Gun::handleEvent(SDL_Event *e)
 bool Gun::updateState()
 {
     updateAngle();
-    checkReloading();
-    shoot();
+    checkShoot();
+    playingSound();
 
     return true;
 }
@@ -408,22 +497,52 @@ void Gun::setPosAndAngle(int x, int y)
 
 void Gun::setGun(GUN_TYPE gunType)
 {
+    if (currentGun == gunType) {
+        return;
+    }
+
     cancelReloading();
     currentGun = gunType;
     mTexture = &sTexture[currentGun];
     cursorMouse->setCursor(gunProperties[currentGun].cursorType);
 
     updateBulletText();
+    reload();
+
+    Mix_AllocateChannels(gunProperties[currentGun].bulletInTape + 5);
+    setCurSound(PULL_OUT_SOUND);
 }
 
-void Gun::reload()
+void Gun::reload(bool finished)
 {
-    //no bullet
-    if (bulletLeft[currentGun] == 0) {
-        return;
+    if (!finished) {
+        //full bullet
+        if (curBullet[currentGun] == gunProperties[currentGun].bulletInTape) {
+            return;
+        }
+        //no bullet
+        if (bulletLeft[currentGun] == 0) {
+            return;
+        }
+        if (!checkReloading()) {
+            setCurSound(RELOAD_SOUND);
+        }
     }
-    if (reloadingEndTime == -1) {
-        reloadingEndTime = getCurrentTime() + reloadingTime;
+    else { //finished
+        //reset
+        cancelReloading();
+
+        //starting reloading
+        if (bulletLeft[currentGun] == -1) {
+            curBullet[currentGun] = gunProperties[currentGun].bulletInTape;
+        } //infinity
+        else {
+            int addCount = std::min(bulletLeft[currentGun], gunProperties[currentGun].bulletInTape - curBullet[currentGun]);
+            curBullet[currentGun] += addCount;
+            bulletLeft[currentGun] -= addCount;
+        }
+
+        updateBulletText();
     }
 }
 
@@ -433,14 +552,27 @@ void Gun::addBulletCount(GUN_TYPE gunType, int bulletMagazine)
     updateBulletText();
 }
 
-bool Gun::render()
-{
-    return Object::render();
-}
-
 LTexture *Gun::getTexture(const GUN_TYPE &gunType)
 {
     return &sTexture[gunType];
+}
+
+void Gun::playingSound()
+{
+    switch (curPlayingSound) {
+        case SHOOT_SOUND:
+            activeShootSound();
+            break;
+        case PULL_OUT_SOUND:
+            activePullOutSound();
+            break;
+        case RELOAD_SOUND:
+            activeReloadSound();
+            break;
+
+        default:
+            break;
+    }
 }
 
 #endif

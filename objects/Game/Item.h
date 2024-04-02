@@ -20,8 +20,10 @@ private:
     LTexture *sTexture[ITEM_COUNT];
     static LTexture circleTexture;
 
-    const std::vector<int> itemPercent = {15, 15, 15, 15, 15, 10};
+    const std::vector<int> itemPercent = {14, 14, 14, 14, 14, 15};
     const std::vector<int> valuePercent = {57, 30, 10, 3};
+
+    const int timeRandom = 7000;
 
     void setRandomTime(Uint32 time);
     void addRandomTime(Uint32 addTime);
@@ -123,7 +125,7 @@ Item::~Item()
 
 void Item::init()
 {
-    setRandomTime(getCurrentTime() + 10000);
+    setRandomTime(getCurrentTime() + timeRandom);
     //to avoid collision with bird
     mPosX = SCREEN_WIDTH + 1;
     mPosY = 0;
@@ -145,7 +147,7 @@ void Item::updateState(ObjectsList &pipeList)
         }
         else if (getCurrentTime() >= randomTime) {
             randomItem(pipeList);
-            addRandomTime(10000);
+            addRandomTime(timeRandom);
             isRendering = true;
         }
     }
