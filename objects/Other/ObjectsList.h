@@ -107,6 +107,7 @@ bool ObjectsList::getCollisionObjects(ObjectsList &objectsListB, listIter &objec
 
 listIter ObjectsList::deleteObject(const listIter &object)
 {
+    delete *object;
     return objectList.erase(object);
 }
 

@@ -29,7 +29,7 @@ private:
 
     //check collision
     void checkCollisionObjects();
-    void checkCollisionBirdAndEnemyBullet();
+    void checkCollisionBatAndPlayerBullet();
     void checkCollisionBirdAndPipe();
     void checkCollisionPipeAndPlayerBullet();
     void checkCollisionObjectsBirdAndBat();
@@ -52,6 +52,8 @@ public:
 
 Game::Game()
 {
+    Mix_AllocateChannels(static_cast<int>(GAME_CHANNEL::COUNT));
+
     pausedTime = 0;
 
     background = new Background();
@@ -205,7 +207,7 @@ void Game::checkCollisionObjects()
     if (GameOver::gameIsOver()) {
         return;
     }
-    checkCollisionBirdAndEnemyBullet();
+    checkCollisionBatAndPlayerBullet();
     checkCollisionBirdAndPipe();
     checkCollisionPipeAndPlayerBullet();
     checkCollisionObjectsBirdAndBat();
@@ -215,7 +217,7 @@ void Game::checkCollisionObjects()
     checkCollisionBossAndPlayerBullet();
 }
 
-void Game::checkCollisionBirdAndEnemyBullet()
+void Game::checkCollisionBatAndPlayerBullet()
 {
     std::_List_iterator<Object *> objectA, objectB;
     auto &bulletList = mainBird->getBulletList();

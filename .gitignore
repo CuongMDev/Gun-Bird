@@ -3,10 +3,6 @@ main.exe
 
 .idea/
 
-.vscode/
-
-.editorconfig
-
 SDL/
 
 SDL2_image.dll

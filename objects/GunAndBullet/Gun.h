@@ -7,6 +7,7 @@
 #include "../Other/Font.h"
 #include <cmath>
 #include <list>
+#include "../Other/SoundChannel.h"
 
 const int gunPosX = 5;
 const int gunPosY = groundPosY + 10;
@@ -48,7 +49,7 @@ private:
     std::vector<Mix_Chunk*> gunSound[GUN_COUNT][3];
     static const std::string soundName[GUN_SOUND_COUNT];
     const int pullOutSoundTime = 17;
-    const int reloadSoundTime = 27;
+    const int reloadSoundTime = 37;
 
     static LTexture sTexture[GUN_COUNT];
     GUN_TYPE currentGun;
@@ -84,7 +85,7 @@ private:
 
     void updateAngle();
     void addBullet();
-    void calculateGunHeadPos(int &x, int &y);
+    void calculateGunHeadPos(int &x, int &y, const int &width);
     void restoreAim();
     void updateBulletText();
     void checkShoot();
@@ -240,21 +241,23 @@ void Gun::updateAngle()
 void Gun::addBullet()
 {
     int x, y;
-    calculateGunHeadPos(x, y);
-
+    calculateGunHeadPos(x, y, getWidth());
     //Adjust the bullet to fit into the barrel of the gun
-    explosionEffect.start(x, y - 10, mAngle);
-    bulletsList.add(new Bullets(x + 10, y - 10, gunProperties[currentGun].bulletType, gunProperties[currentGun].damage));
+    explosionEffect.start(x, y - 8, mAngle);
+
+    calculateGunHeadPos(x, y, getWidth() - 20);
+    //Adjust the bullet to fit into the barrel of the gun
+    bulletsList.add(new Bullets(x + 5, y - 8, gunProperties[currentGun].bulletType, gunProperties[currentGun].damage));
 
     curBullet[currentGun]--;
     updateBulletText();
 }
 
-void Gun::calculateGunHeadPos(int &x, int &y)
+void Gun::calculateGunHeadPos(int &x, int &y, const int &width)
 {
     x = mPosX;
     y = mPosY + pivotY;
-    cursorMouse->calculateVelocityToMouse(x, y, getWidth());
+    cursorMouse->calculateVelocityToMouse(x, y, width);
 
     x += mPosX;
     y += mPosY + pivotY;
@@ -396,20 +399,34 @@ void Gun::setCurSound(Gun::GUN_SOUND_TYPE soundType)
 
 void Gun::activeShootSound()
 {
+    static int currentShoot = 0;
+
     int soundCount = (int)gunSound[currentGun][SHOOT_SOUND].size();
-    Mix_PlayChannel(-1, gunSound[currentGun][SHOOT_SOUND][getRandomNumber(0, soundCount - 1)], 0);
+    currentShoot++;
+    if (currentShoot >= soundCount) {
+        currentShoot = 0;
+    }
+
+    int soundChannel = static_cast<int>(GAME_CHANNEL::GUN_SHOOT_1) + currentShoot;
+    Mix_PlayChannel(soundChannel, gunSound[currentGun][SHOOT_SOUND][getRandomNumber(0, soundCount - 1)], 0);
     setCurSound();
 }
 
 void Gun::activePullOutSound()
 {
     int soundCount = (int)gunSound[currentGun][PULL_OUT_SOUND].size();
-    if (curSoundTime == soundCount * pullOutSoundTime - pullOutSoundTime / 2) {
-        setCurSound();
+    int soundChannel = static_cast<int>(GAME_CHANNEL::GUN_PULL_OUT_AND_RELOAD);
+
+    if (curSoundTime > (soundCount - 1) * pullOutSoundTime) {
+        //finished pull out
+        if (!Mix_Playing(soundChannel)) {
+            setCurSound();
+        }
         return;
     }
+
     if (curSoundTime % pullOutSoundTime == 0) {
-        Mix_PlayChannel(-1, gunSound[currentGun][PULL_OUT_SOUND][curSoundTime / pullOutSoundTime], 0);
+        Mix_PlayChannel(soundChannel, gunSound[currentGun][PULL_OUT_SOUND][curSoundTime / pullOutSoundTime], 0);
     }
     curSoundTime++;
 }
@@ -417,13 +434,18 @@ void Gun::activePullOutSound()
 void Gun::activeReloadSound()
 {
     int soundCount = (int)gunSound[currentGun][RELOAD_SOUND].size();
-    if (curSoundTime == soundCount * reloadSoundTime + reloadSoundTime / 2) {
-        reload(true);
-        setCurSound(PULL_OUT_SOUND);
+    int soundChannel = static_cast<int>(GAME_CHANNEL::GUN_PULL_OUT_AND_RELOAD);
+
+    if (curSoundTime > (soundCount - 1) * reloadSoundTime) {
+        //finished reloading
+        if (!Mix_Playing(soundChannel)) {
+            reload(true);
+            setCurSound(PULL_OUT_SOUND);
+        }
         return;
     }
-    if (curSoundTime % reloadSoundTime == 0 && curSoundTime / reloadSoundTime < soundCount) {
-        Mix_PlayChannel(-1, gunSound[currentGun][RELOAD_SOUND][curSoundTime / reloadSoundTime], 0);
+    if (curSoundTime % reloadSoundTime == 0) {
+        Mix_PlayChannel(soundChannel, gunSound[currentGun][RELOAD_SOUND][curSoundTime / reloadSoundTime], 0);
     }
     curSoundTime++;
 }
@@ -509,7 +531,6 @@ void Gun::setGun(GUN_TYPE gunType)
     updateBulletText();
     reload();
 
-    Mix_AllocateChannels(gunProperties[currentGun].bulletInTape + 5);
     setCurSound(PULL_OUT_SOUND);
 }
 

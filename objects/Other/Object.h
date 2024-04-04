@@ -21,7 +21,7 @@ protected:
 
 public:
     Object(bool init = true);
-    ~Object();
+    virtual ~Object();
 
     virtual bool render();
     bool checkCollisionObject(const Object &object);
