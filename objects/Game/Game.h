@@ -29,14 +29,14 @@ private:
 
     //check collision
     void checkCollisionObjects();
-    void checkCollisionBatAndPlayerBullet();
-    void checkCollisionBirdAndPipe();
-    void checkCollisionPipeAndPlayerBullet();
+    void checkCollisionObjectBatAndPlayerBullet();
+    void checkCollisionObjectBirdAndPipe();
+    void checkCollisionObjectPipeAndPlayerBullet();
     void checkCollisionObjectsBirdAndBat();
     void checkCollisionObjectsBirdAndItems();
     void checkCollisionObjectsBirdAndBoss();
     void checkCollisionObjectsBirdAndSrynge();
-    void checkCollisionBossAndPlayerBullet();
+    void checkCollisionObjectBossAndPlayerBullet();
     void checkGameOver();
 
 public:
@@ -52,7 +52,7 @@ public:
 
 Game::Game()
 {
-    Mix_AllocateChannels(static_cast<int>(GAME_CHANNEL::COUNT));
+    Mix_AllocateChannels(static_cast<int>(SOUND_CHANNEL_COUNT::GAME));
 
     pausedTime = 0;
 
@@ -207,17 +207,17 @@ void Game::checkCollisionObjects()
     if (GameOver::gameIsOver()) {
         return;
     }
-    checkCollisionBatAndPlayerBullet();
-    checkCollisionBirdAndPipe();
-    checkCollisionPipeAndPlayerBullet();
+    checkCollisionObjectBatAndPlayerBullet();
+    checkCollisionObjectBirdAndPipe();
+    checkCollisionObjectPipeAndPlayerBullet();
     checkCollisionObjectsBirdAndBat();
     checkCollisionObjectsBirdAndItems();
     checkCollisionObjectsBirdAndBoss();
     checkCollisionObjectsBirdAndSrynge();
-    checkCollisionBossAndPlayerBullet();
+    checkCollisionObjectBossAndPlayerBullet();
 }
 
-void Game::checkCollisionBatAndPlayerBullet()
+void Game::checkCollisionObjectBatAndPlayerBullet()
 {
     std::_List_iterator<Object *> objectA, objectB;
     auto &bulletList = mainBird->getBulletList();
@@ -249,7 +249,7 @@ void Game::checkCollisionBatAndPlayerBullet()
     }
 }
 
-void Game::checkCollisionBirdAndPipe()
+void Game::checkCollisionObjectBirdAndPipe()
 {
     std::_List_iterator<Object *> object;
     if (pipeList->getCollisionObject(*mainBird, object)) {
@@ -257,7 +257,7 @@ void Game::checkCollisionBirdAndPipe()
     }
 }
 
-void Game::checkCollisionPipeAndPlayerBullet()
+void Game::checkCollisionObjectPipeAndPlayerBullet()
 {
     std::_List_iterator<Object *> objectA, objectB;
     auto &bulletList = mainBird->getBulletList();
@@ -275,7 +275,9 @@ void Game::checkCollisionObjectsBirdAndBat()
     while (batList->getCollisionObject(*mainBird, object, continueToFind)) {
         Bat *bat = dynamic_cast<Bat*>(*object);
         if (!bat->isDied()) {
-            mainBird->changeHealth(-batDamage);
+            if (mainBird->changeHealth(-batDamage)) {
+                bat->onDied();
+            }
             break;
         }
         //next bat
@@ -333,7 +335,7 @@ void Game::checkCollisionObjectsBirdAndSrynge()
     }
 }
 
-void Game::checkCollisionBossAndPlayerBullet()
+void Game::checkCollisionObjectBossAndPlayerBullet()
 {
     if (boss->isDied()) {
         return;

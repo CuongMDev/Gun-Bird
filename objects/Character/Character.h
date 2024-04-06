@@ -78,12 +78,11 @@ protected:
     //use when have gravitation
     void decreaseVelAndAngle();
 
-    virtual void onDied();
     bool updateState() override;
     void renderTogRenderer() override;
     void setSTexture(std::vector<LTexture> *newSTexture);
     int getCurrentIMG() const;
-    bool checkEndOfChain();
+    bool checkEndOfIMG();
 
     void setGravity(bool state);
     void setFlipMode(SDL_RendererFlip _flipMode);
@@ -99,6 +98,7 @@ protected:
     void addVelAngle(double value);
 
 public:
+    virtual void onDied();
     bool isDied() const;
 };
 
@@ -486,9 +486,9 @@ int Character::getCurrentIMG() const
     return answer;
 }
 
-bool Character::checkEndOfChain()
+bool Character::checkEndOfIMG()
 {
-    return (getCurrentIMG() == imgCount - 1 && curTimeRender == imgChangeVel - 1);
+    return (curTimeRender == imgChangeVel - 1);
 }
 
 #endif

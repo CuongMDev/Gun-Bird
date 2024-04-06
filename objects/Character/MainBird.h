@@ -16,17 +16,28 @@ const int mainHealthBarPosY = 50;
 class MainBird : public Character
 {
 private:
+    enum BIRD_SOUND_TYPE
+    {
+        JUMP_SOUND,
+        COLLISION_SOUND,
+
+        BIRD_SOUND_COUNT
+    };
+
     const int maxHealth = 5;
     const int invisibleTime = 2000;
 
     Gun gun;
     HealthBar *health;
 
+    Mix_Chunk *birdSound[BIRD_SOUND_COUNT];
+
     //-1 if not invisible
     int invisibleEndTime;
     void setInvisible(bool state);
     bool checkVisible();
     void updateVisibleState();
+    void loadSound();
     void jump();
 
     const int maxVisibleState = 6;
@@ -43,8 +54,10 @@ public:
     void init(int x, int y);
     void handleEvent(SDL_Event *e);
     void handleKey(const Uint8 *currentKeyStates);
-    void changeHealth(int value);
     void addBulletCount(GUN_TYPE gunType, int bulletCount);
+
+    //return if health is changed
+    bool changeHealth(int value);
 
     int getCurrentHealth() const;
 
@@ -55,11 +68,15 @@ MainBird::MainBird(int x, int y) : Character(x, y, MAIN_BIRD)
 {
     health = new HealthBar(mainHealthBarPosX, mainHealthBarPosY, false, true, maxHealth);
     init(x, y);
+    loadSound();
 }
 
 MainBird::~MainBird()
 {
     delete health;
+    for (auto & sound : birdSound) {
+        Mix_FreeChunk(sound);
+    }
 }
 
 void MainBird::init(int x, int y)
@@ -155,8 +172,15 @@ void MainBird::updateVisibleState()
     }
 }
 
+void MainBird::loadSound()
+{
+    birdSound[JUMP_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "jump.wav").c_str());
+    birdSound[COLLISION_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "collision.wav").c_str());
+}
+
 void MainBird::jump()
 {
+    Mix_PlayChannel((int)MAINBIRD_SOUND_CHANNEL::JUMP, birdSound[JUMP_SOUND], 0);
     setVelY(-15);
     setVelAngle(8);
 }
@@ -187,23 +211,27 @@ void MainBird::renderTogRenderer()
     health->render();
 }
 
-void MainBird::changeHealth(int value)
+bool MainBird::changeHealth(int value)
 {
     //if get damaged && visible
     if (value < 0 && checkVisible()) {
-        return;
+        return false;
     }
     health->changeHealth(value);
-    if (health->getCurrentHealth() == 0) {
-        onDied();
-        setInvisible(false);
-        return;
-    }
 
     //if get damaged
     if (value < 0) {
+        Mix_PlayChannel((int)MAINBIRD_SOUND_CHANNEL::COLLISION, birdSound[COLLISION_SOUND], 0);
+        //check die
+        if (health->getCurrentHealth() == 0) {
+            onDied();
+            setInvisible(false);
+            return true;
+        }
+
         setInvisible(true);
     }
+    return true;
 }
 
 void MainBird::addBulletCount(GUN_TYPE gunType, int bulletCount)

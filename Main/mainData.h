@@ -25,6 +25,9 @@ const std::string imagePath = "image/";
 
 const std::string soundPath = "sound/";
     const std::string gunSoundPath = soundPath + "Gun/";
+    const std::string characterSoundPath = soundPath + "Character/";
+        const std::string mainBirdSoundPath = characterSoundPath + "MainBird/";
+        const std::string bossSoundPath = characterSoundPath + "Boss/";
 
 const std::string fontPath = "font/";
     const std::string firaCodeFontPath = fontPath + "FiraCode/";

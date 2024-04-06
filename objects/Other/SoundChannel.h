@@ -1,7 +1,7 @@
 #ifndef SOUND_CHANNEL_H
 #define SOUND_CHANNEL_H
 
-enum class GAME_CHANNEL
+enum class GUN_SOUND_CHANNEL
 {
     GUN_SHOOT_1,
     GUN_SHOOT_2,
@@ -10,7 +10,33 @@ enum class GAME_CHANNEL
 
     GUN_PULL_OUT_AND_RELOAD,
 
-    COUNT
+    NEXT,
+    COUNT = NEXT
+};
+
+enum class BOSS_SOUND_CHANNEL
+{
+    WING_FLAP_1 = (int)GUN_SOUND_CHANNEL::NEXT,
+    WING_FLAP_2,
+    WING_FLAP_3,
+
+    NEXT,
+    COUNT = NEXT - (int)GUN_SOUND_CHANNEL::NEXT
+
+};
+
+enum class MAINBIRD_SOUND_CHANNEL
+{
+    JUMP = (int)BOSS_SOUND_CHANNEL::NEXT,
+    COLLISION,
+
+    NEXT,
+    COUNT = NEXT - (int)BOSS_SOUND_CHANNEL::NEXT
+};
+
+enum class SOUND_CHANNEL_COUNT
+{
+    GAME = (int)GUN_SOUND_CHANNEL::COUNT + (int)BOSS_SOUND_CHANNEL::COUNT + (int)MAINBIRD_SOUND_CHANNEL::COUNT
 };
 
 #endif

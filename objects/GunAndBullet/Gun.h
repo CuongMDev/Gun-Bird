@@ -165,9 +165,9 @@ Gun::Gun() : Object(false)
 
 Gun::~Gun()
 {
-    for (auto gunType = 0; gunType < GUN_COUNT; gunType++) {
-        for (auto soundType = 0; soundType < GUN_SOUND_COUNT; soundType++) {
-            for (auto &i : gunSound[gunType][soundType]) {
+    for (auto & gunType : gunSound) {
+        for (auto & soundType : gunType) {
+            for (auto &i : soundType) {
                 Mix_FreeChunk(i);
             }
         }
@@ -407,7 +407,7 @@ void Gun::activeShootSound()
         currentShoot = 0;
     }
 
-    int soundChannel = static_cast<int>(GAME_CHANNEL::GUN_SHOOT_1) + currentShoot;
+    int soundChannel = static_cast<int>(GUN_SOUND_CHANNEL::GUN_SHOOT_1) + currentShoot;
     Mix_PlayChannel(soundChannel, gunSound[currentGun][SHOOT_SOUND][getRandomNumber(0, soundCount - 1)], 0);
     setCurSound();
 }
@@ -415,7 +415,7 @@ void Gun::activeShootSound()
 void Gun::activePullOutSound()
 {
     int soundCount = (int)gunSound[currentGun][PULL_OUT_SOUND].size();
-    int soundChannel = static_cast<int>(GAME_CHANNEL::GUN_PULL_OUT_AND_RELOAD);
+    int soundChannel = static_cast<int>(GUN_SOUND_CHANNEL::GUN_PULL_OUT_AND_RELOAD);
 
     if (curSoundTime > (soundCount - 1) * pullOutSoundTime) {
         //finished pull out
@@ -434,7 +434,7 @@ void Gun::activePullOutSound()
 void Gun::activeReloadSound()
 {
     int soundCount = (int)gunSound[currentGun][RELOAD_SOUND].size();
-    int soundChannel = static_cast<int>(GAME_CHANNEL::GUN_PULL_OUT_AND_RELOAD);
+    int soundChannel = static_cast<int>(GUN_SOUND_CHANNEL::GUN_PULL_OUT_AND_RELOAD);
 
     if (curSoundTime > (soundCount - 1) * reloadSoundTime) {
         //finished reloading

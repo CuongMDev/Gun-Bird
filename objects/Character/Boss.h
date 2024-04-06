@@ -21,12 +21,20 @@ private:
         ACTION_COUNT
     };
 
+    enum BOSS_SOUND_TYPE
+    {
+        WING_FLAP_SOUND,
+
+        BOSS_SOUND_COUNT
+    };
+
     const int bossDamage = 1;
     const int bossTimeBeforeBeingDeleted = 2000;
     //-1 if it is having action
     static Uint32 nextActionTime;
 
     int maxHealth;
+    Mix_Chunk* bossSound[BOSS_SOUND_COUNT];
 
     const int attackPosX = SCREEN_WIDTH - 300;
     const int attackPosY = 50;
@@ -72,6 +80,8 @@ private:
     bool moveAttackAction();
     void randomMoveAttackDes(int &desX, int &desY);
 
+    void activeWingFlapSound();
+
     //false if no action to do
     bool startAction();
     void addSyringe();
@@ -85,6 +95,9 @@ private:
 
     bool addAttackAction();
 
+    void loadIMG();
+    void loadSound();
+
     bool updateState() override;
     void renderTogRenderer() override;
 
@@ -94,7 +107,6 @@ public:
 
     void init();
     void continueInit();
-    void loadIMG();
 
     ObjectsList &getSryngeList();
 
@@ -106,13 +118,18 @@ Uint32 Boss::nextActionTime = waitTimeBeforePlaying;
 Boss::Boss() : Character(0, 0, BOSS)
 {
     loadIMG();
+    loadSound();
     health = new HealthBar(bossHealthBarPosX, bossHealthBarPosY, true, true, 0);
 
     init();
 }
 
 Boss::~Boss()
-= default;
+{
+    for (auto & sound : bossSound) {
+        Mix_FreeChunk(sound);
+    }
+}
 
 void Boss::loadIMG()
 {
@@ -127,6 +144,11 @@ void Boss::loadIMG()
 
     dieTexture.resize(1);
     dieTexture[0].loadFromFile(bossImagePath + "Die/die0" + ".png", true, 34,177,76);
+}
+
+void Boss::loadSound()
+{
+    bossSound[WING_FLAP_SOUND] = Mix_LoadWAV((bossSoundPath + "wingflap.wav").c_str());
 }
 
 void Boss::init()
@@ -214,6 +236,9 @@ bool Boss::updateState()
                 checkRandomTime();
             }
         }
+        if (getCurrentIMG() == 3 && checkEndOfIMG()) {
+            activeWingFlapSound();
+        }
     }
 
     return updated;
@@ -250,6 +275,9 @@ void Boss::setAction(const Action &action)
 
 bool Boss::moveTo(int x, int y, bool getThisVel)
 {
+    if (getCurrentIMG() == 4 && checkEndOfIMG()) {
+        activeWingFlapSound();
+    }
     if (mPosX == x && mPosY == y) {
         return true;
     }
@@ -320,7 +348,10 @@ bool Boss::attackAction()
             //shoot
             addSyringe();
         }
-        if (checkEndOfChain()) { //end of chain
+        if (currentIMG == 4 && checkEndOfIMG()) {
+            activeWingFlapSound();
+        }
+        if (currentIMG == 7 && checkEndOfIMG()) { //end of chain
             //reset
             if (addAttackAction()) {
                 return true;
@@ -388,7 +419,6 @@ void Boss::checkRandomTime()
     }
 }
 
-
 void Boss::addSyringe()
 {
     curShootTime++;
@@ -435,6 +465,17 @@ void Boss::randomMoveAttackDes(int &desX, int &desY)
     setAngle(angle);
 
     moveTo(desX, desY, true);
+}
+
+void Boss::activeWingFlapSound()
+{
+    static int currentChannel = 0;
+
+    currentChannel++;
+    if (currentChannel >= 3) {
+        currentChannel = 0;
+    }
+    Mix_PlayChannel(currentChannel + (int)BOSS_SOUND_CHANNEL::WING_FLAP_1, bossSound[WING_FLAP_SOUND], 0);
 }
 
 ObjectsList &Boss::getSryngeList()

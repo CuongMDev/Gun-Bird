@@ -102,7 +102,7 @@ void Item::randomItem(ObjectsList &pipeList)
     if (pipeList.getCollisionObject(*this, object)) {
         mPosY = groundPosY - mPosY;
         if (pipeList.getCollisionObject(*this, object)) {
-            mPosY += groundPosY / 2;
+            mPosY += groundPosY / 3;
             if (pipeList.getCollisionObject(*this, object)) {
                 mPosY += groundPosY - mPosY;
             }
