@@ -19,6 +19,8 @@ double angleBetweenTwoPos(const int &x1, const int &y1, const int &x2, const int
 template<typename T>
 T getRandomWithPercent(const std::vector<int> &percent, const std::vector<T> &type);
 
+//-------------------------------------
+
 double distance(const int &p1X, const int &p1Y, const int &p2X, const int &p2Y)
 {
     int dx = p2X - p1X;

@@ -145,7 +145,7 @@ const GunProperties Gun::gunProperties[] = {
         {30, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, GOLDPISTOL_CURSOR, "goldpistol"}, //gold pistol
         {5, 7, 1, 7, 7, 30,AK47_BULLET, AK47_CURSOR, "ak47"}, //AK47
         {7, 20, 10, 20, 20, 8,WIN94_BULLET, WIN94_CURSOR, "win94"}, //Win94
-        {12, 30, 20, 20, 30, 5, SNIPER_BULLET, SNIPER_CURSOR, "sniper"}, //Sniper
+        {12, 50, 20, 20, 50, 5, SNIPER_BULLET, SNIPER_CURSOR, "sniper"}, //Sniper
 };
 const std::string Gun::soundName[] = {
         {"0"}, //shoot

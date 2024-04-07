@@ -8,7 +8,7 @@
 class Game
 {
 private:
-    const int gameRoundsPerLevel = 10;
+    const int gameRoundsPerLevel = 5;
 
     Background *background;
     Ground *ground;
@@ -35,7 +35,7 @@ private:
     void checkCollisionObjectsBirdAndBat();
     void checkCollisionObjectsBirdAndItems();
     void checkCollisionObjectsBirdAndBoss();
-    void checkCollisionObjectsBirdAndSrynge();
+    void checkCollisionObjectsBirdAndSyringe();
     void checkCollisionObjectBossAndPlayerBullet();
     void checkGameOver();
 
@@ -213,7 +213,7 @@ void Game::checkCollisionObjects()
     checkCollisionObjectsBirdAndBat();
     checkCollisionObjectsBirdAndItems();
     checkCollisionObjectsBirdAndBoss();
-    checkCollisionObjectsBirdAndSrynge();
+    checkCollisionObjectsBirdAndSyringe();
     checkCollisionObjectBossAndPlayerBullet();
 }
 
@@ -298,7 +298,7 @@ void Game::checkCollisionObjectsBirdAndItems()
             mainBird->changeHealth(item->getItemValue());
         }
 
-        item->init();
+        item->init(true);
     }
 }
 
@@ -324,13 +324,13 @@ void Game::checkCollisionObjectsBirdAndBoss()
     }
 }
 
-void Game::checkCollisionObjectsBirdAndSrynge()
+void Game::checkCollisionObjectsBirdAndSyringe()
 {
     if (boss->isDied()) {
         return;
     }
     std::_List_iterator<Object *> object;
-    if (boss->getSryngeList().getCollisionObject(*mainBird, object)) {
+    if (boss->getSyringeList().getCollisionObject(*mainBird, object)) {
         mainBird->changeHealth(-1);
     }
 }

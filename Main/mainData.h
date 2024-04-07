@@ -8,6 +8,8 @@
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 630;
 
+const std::string gameTitle = "Gun-Bird";
+
 //path---
 const std::string imagePath = "image/";
     const std::string bulletImagePath = imagePath + "Bullet/";
@@ -28,6 +30,7 @@ const std::string soundPath = "sound/";
     const std::string characterSoundPath = soundPath + "Character/";
         const std::string mainBirdSoundPath = characterSoundPath + "MainBird/";
         const std::string bossSoundPath = characterSoundPath + "Boss/";
+        const std::string itemSoundPath = characterSoundPath + "Item/";
 
 const std::string fontPath = "font/";
     const std::string firaCodeFontPath = fontPath + "FiraCode/";

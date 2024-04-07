@@ -55,7 +55,7 @@ private:
     //check if exist gravity
     bool gravity;
 
-    void loadIMG();
+    void initType();
     void setToBorderPos();
     void increaseTimeRender();
     void resetIMGRender();
@@ -63,7 +63,6 @@ private:
     bool checkOutBorder();
     bool checkGroundCollision();
 
-    bool isStayingOnGround();
     bool move();
     bool playingUpdate();
     bool dyingUpdate();
@@ -72,11 +71,11 @@ protected:
     Character(int x, int y, CHARACTER_TYPE character);
     ~Character();
 
-
     void initCharacter(int x, int y);
 
     //use when have gravitation
     void decreaseVelAndAngle();
+    bool isStayingOnGround();
 
     bool updateState() override;
     void renderTogRenderer() override;
@@ -84,6 +83,7 @@ protected:
     int getCurrentIMG() const;
     bool checkEndOfIMG();
 
+    void setLimitAngle(int limitAngleLower, int limitAngleUpper);
     void setGravity(bool state);
     void setFlipMode(SDL_RendererFlip _flipMode);
     void setBorder(int x, int y, int w, int h);
@@ -106,17 +106,12 @@ Character::Character(int x, int y, CHARACTER_TYPE character) : Object(false)
 {
     mCharacterType = character;
 
-    loadIMG();
+    initType();
     initCharacter(x, y);
 }
 
 Character::~Character()
-{
-    if (mCharacterType == BOSS) {
-        return;
-    }
-    delete sTexture;
-}
+= default;
 
 void Character::initCharacter(int x, int y)
 {
@@ -135,6 +130,9 @@ void Character::initCharacter(int x, int y)
     //Create the necessary SDL_Rects
     //mColliders.resize(11);
 
+    limitAngleUpper = 180;
+    limitAngleLower = -180;
+
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
@@ -151,8 +149,7 @@ void Character::initCharacter(int x, int y)
             limitAngleLower = -45;
             break;
         case BAT:
-            limitAngleUpper = 45;
-            limitAngleLower = 0;
+
             break;
         case BOSS:
             limitAngleUpper = 180;
@@ -186,34 +183,16 @@ void Character::onDied()
     }
 }
 
-void Character::loadIMG()
+void Character::initType()
 {
     sTexture = new std::vector<LTexture>;
     switch (mCharacterType) {
-        //image: https://flappybird.io/
         case MAIN_BIRD:
-            imgCount = 4;
-            sTexture->resize(imgCount);
-
-            (*sTexture)[0].loadFromFile(mainBirdImagePath + "mainBird0.png", true, 124, 197, 205);
-            (*sTexture)[1].loadFromFile(mainBirdImagePath + "mainBird1.png", true, 124, 197, 205);
-            (*sTexture)[2].loadFromFile(mainBirdImagePath + "mainBird2.png", true, 124, 197, 205);
-            (*sTexture)[3] = (*sTexture)[1];
-
             direction = RIGHT;
             initImgChangeVelWhenAir = 2;
 
             break;
-            //image: https://opengameart.org/content/bat-rework
         case BAT:
-            imgCount = 4;
-            sTexture->resize(imgCount);
-
-            (*sTexture)[0].loadFromFile(batImagePath + "bat0.png", true, 34, 177, 76);
-            (*sTexture)[1].loadFromFile(batImagePath + "bat1.png", true, 34, 177, 76);
-            (*sTexture)[2].loadFromFile(batImagePath + "bat2.png", true, 34, 177, 76);
-            (*sTexture)[3] = (*sTexture)[1];
-
             direction = LEFT;
             initImgChangeVelWhenAir = 6;
 
@@ -417,6 +396,12 @@ bool Character::move()
 bool Character::isDied() const
 {
     return died;
+}
+
+void Character::setLimitAngle(int limitAngleLower, int limitAngleUpper)
+{
+    this->limitAngleLower =limitAngleLower;
+    this->limitAngleUpper =limitAngleUpper;
 }
 
 void Character::setGravity(bool state)

@@ -20,6 +20,7 @@ private:
     {
         JUMP_SOUND,
         COLLISION_SOUND,
+        FAST_HEART_SOUND,
 
         BIRD_SOUND_COUNT
     };
@@ -27,6 +28,7 @@ private:
     const int maxHealth = 5;
     const int invisibleTime = 2000;
 
+    std::vector<LTexture> sTexture;
     Gun gun;
     HealthBar *health;
 
@@ -43,6 +45,9 @@ private:
     const int maxVisibleState = 6;
     //blurry if <= maxVisibleState / 2 and clear if > maxVisibleState / 2
     int currentVisibleState;
+
+    void loadIMG();
+    void updateGPos();
 
     bool updateState() override;
     void renderTogRenderer() override;
@@ -67,6 +72,7 @@ public:
 MainBird::MainBird(int x, int y) : Character(x, y, MAIN_BIRD)
 {
     health = new HealthBar(mainHealthBarPosX, mainHealthBarPosY, false, true, maxHealth);
+    loadIMG();
     init(x, y);
     loadSound();
 }
@@ -81,13 +87,27 @@ MainBird::~MainBird()
 
 void MainBird::init(int x, int y)
 {
+    setSTexture(&sTexture);
     initCharacter(x, y);
+    setLimitAngle(-45, 0);
     health->setHealth(maxHealth);
     gun.setPosAndAngle(x + getWidth() / 3, y + getHeight() / 3);
     gun.init();
 
     invisibleEndTime = -1;
     currentVisibleState = 0;
+}
+
+void MainBird::loadIMG()
+{
+    const int imgCount = 4;
+
+    //image: https://flappybird.io/
+    sTexture.resize(imgCount);
+    for (int i = 0; i < imgCount - 1; i++) {
+        sTexture[i].loadFromFile(mainBirdImagePath + "mainBird" + std::to_string(i) + ".png");
+    }
+    sTexture[imgCount - 1] = sTexture[1];
 }
 
 void MainBird::handleEvent(SDL_Event *e)
@@ -130,6 +150,12 @@ void MainBird::handleKey(const Uint8 *currentKeyStates)
     if (currentKeyStates[SDL_SCANCODE_A]) {
         setVelX(-5);
     }
+}
+
+void MainBird::updateGPos()
+{
+    gMainBirdPosX = mPosX;
+    gMainBirdPosY = mPosY;
 }
 
 void MainBird::setInvisible(bool state)
@@ -176,6 +202,7 @@ void MainBird::loadSound()
 {
     birdSound[JUMP_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "jump.wav").c_str());
     birdSound[COLLISION_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "collision.wav").c_str());
+    birdSound[FAST_HEART_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "fastheart.wav").c_str());
 }
 
 void MainBird::jump()
@@ -185,8 +212,10 @@ void MainBird::jump()
     setVelAngle(8);
 }
 
-bool MainBird::updateState() {
+bool MainBird::updateState()
+{
     bool updated = Character::updateState();
+    updateGPos();
 
     if (checkVisible()) {
         updateVisibleState();
@@ -227,6 +256,9 @@ bool MainBird::changeHealth(int value)
             onDied();
             setInvisible(false);
             return true;
+        }
+        else if (health->getCurrentHealth() == 1) {
+            Mix_PlayChannel((int)MAINBIRD_SOUND_CHANNEL::FAST_HEART, birdSound[FAST_HEART_SOUND], 0);
         }
 
         setInvisible(true);

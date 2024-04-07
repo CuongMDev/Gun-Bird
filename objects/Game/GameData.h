@@ -12,6 +12,9 @@ const int waitTimeBeforePlaying = 2000;
 int gCurVelocityYScene;
 int gVelocityYScene;
 
+int gMainBirdPosX;
+int gMainBirdPosY;
+
 bool gamePaused = false;
 
 //-1 if game not pause

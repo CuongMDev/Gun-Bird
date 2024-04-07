@@ -17,7 +17,16 @@ enum ITEM_TYPE
 class Item : public Object
 {
 private:
+    enum ITEM_SOUND_TYPE
+    {
+        HEALTH_PICKUP_SOUND,
+        ITEM_PICKUP_SOUND,
+
+        ITEM_SOUND_COUNT
+    };
+
     LTexture *sTexture[ITEM_COUNT];
+    Mix_Chunk *itemSound[ITEM_SOUND_COUNT];
     static LTexture circleTexture;
 
     const std::vector<int> itemPercent = {14, 14, 14, 14, 14, 15};
@@ -35,8 +44,10 @@ private:
     ITEM_TYPE itemType;
 
     bool move();
+    void activeSound();
 
     void loadIMG();
+    void loadSound();
 
     void updateState(ObjectsList &pipeList);
     void renderTogRenderer() override;
@@ -45,7 +56,7 @@ public:
     Item();
     ~Item();
 
-    void init();
+    void init(bool isPickedUp = false);
     void render(ObjectsList &pipeList);
 
     void randomItem(ObjectsList &pipeList);
@@ -69,6 +80,12 @@ void Item::loadIMG()
     sTexture[HEALTH_ITEM] = new LTexture();
     sTexture[HEALTH_ITEM]->loadFromFile(itemImagePath + "healthitem.png");
     circleTexture.loadFromFile(itemImagePath + "itemcircle.png");
+}
+
+void Item::loadSound()
+{
+    itemSound[HEALTH_PICKUP_SOUND] = Mix_LoadWAV((itemSoundPath + "healthpickup.wav").c_str());
+    itemSound[ITEM_PICKUP_SOUND] = Mix_LoadWAV((itemSoundPath + "itempickup.wav").c_str());
 }
 
 bool Item::move()
@@ -115,16 +132,24 @@ void Item::randomItem(ObjectsList &pipeList)
 Item::Item() : Object(false)
 {
     loadIMG();
+    loadSound();
     init();
 }
 
 Item::~Item()
 {
     delete sTexture[HEALTH_ITEM];
+    for (auto & sound : itemSound) {
+        Mix_FreeChunk(sound);
+    }
 }
 
-void Item::init()
+void Item::init(bool isPickedUp)
 {
+    if (isPickedUp) {
+        activeSound();
+    }
+
     setRandomTime(getCurrentTime() + timeRandom);
     //to avoid collision with bird
     mPosX = SCREEN_WIDTH + 1;
@@ -134,6 +159,16 @@ void Item::init()
     isRendering = false;
     //to avoid error when get dimension
     mTexture = sTexture[SILENT_PISTOL_ITEM];
+}
+
+void Item::activeSound()
+{
+    if (itemType == HEALTH_ITEM) {
+        Mix_PlayChannel((int)ITEM_SOUND_CHANNEL::ITEM_PICKUP, itemSound[HEALTH_PICKUP_SOUND], 0);
+    }
+    else { //item
+        Mix_PlayChannel((int)ITEM_SOUND_CHANNEL::ITEM_PICKUP, itemSound[ITEM_PICKUP_SOUND], 0);
+    }
 }
 
 void Item::updateState(ObjectsList &pipeList)
