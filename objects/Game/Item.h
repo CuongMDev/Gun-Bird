@@ -133,7 +133,6 @@ Item::Item() : Object(false)
 {
     loadIMG();
     loadSound();
-    init();
 }
 
 Item::~Item()

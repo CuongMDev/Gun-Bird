@@ -5,7 +5,7 @@
 #include "../../Main/mainData.h"
 #include <map>
 
-const int fontSize = 28;
+const int fontSize = 35;
 
 enum class FontStyle {
     Bold,
@@ -16,6 +16,8 @@ enum class FontStyle {
 };
 
 std::map<FontStyle, TTF_Font*> firaFonts;
+std::map<FontStyle, TTF_Font*> wolfalconFonts;
+std::map<FontStyle, TTF_Font*> mightySoulyFonts;
 
 void loadFontFromFile(std::map<FontStyle, TTF_Font*> &fontContainer, std::string path, FontStyle fontStyle)
 {
@@ -34,9 +36,15 @@ void loadFiraFont()
     loadFontFromFile(firaFonts, firaCodeFontPath + "FiraCode-SemiBold.ttf", FontStyle::SemiBold);
 }
 
+void loadMightySoulyFont()
+{
+    loadFontFromFile(mightySoulyFonts, mightySoulyFontPath + "MightySouly.ttf", FontStyle::Regular);
+}
+
 void loadFont()
 {
     loadFiraFont();
+    loadMightySoulyFont();
 }
 
 #endif //FONT_H

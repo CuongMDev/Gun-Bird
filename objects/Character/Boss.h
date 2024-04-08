@@ -124,8 +124,6 @@ Boss::Boss() : Character(0, 0, BOSS)
     loadIMG();
     loadSound();
     health = new HealthBar(bossHealthBarPosX, bossHealthBarPosY, true, true, 0);
-
-    init();
 }
 
 Boss::~Boss()

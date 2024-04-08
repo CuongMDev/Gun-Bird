@@ -159,8 +159,6 @@ Gun::Gun() : Object(false)
 {
     loadIMG();
     loadSound();
-    init();
-    updateBulletText();
 }
 
 Gun::~Gun()

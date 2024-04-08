@@ -2,7 +2,7 @@
 #define GAME_H
 
 #include "../AllObjects.h"
-#include "Point.h"
+#include "Score.h"
 #include "Item.h"
 
 class Game
@@ -17,13 +17,12 @@ private:
     Boss *boss;
     GameOver *gameOver;
     ObjectsList *pipeList;
-    Point *point;
+    Score *score;
     Item *item;
 
-    static void handleGameOver();
-    void resetGame();
+    void handleGameOver();
     void changeGamePaused();
-    void addPoint(bool force = false);
+    void addScore(bool force = false);
 
     void upGameLevel();
 
@@ -52,8 +51,6 @@ public:
 
 Game::Game()
 {
-    Mix_AllocateChannels(static_cast<int>(SOUND_CHANNEL_COUNT::GAME));
-
     pausedTime = 0;
 
     background = new Background();
@@ -63,9 +60,8 @@ Game::Game()
     boss = new Boss();
     gameOver = new GameOver();
     pipeList = new ObjectsList();
-    point = new Point;
+    score = new Score();
     item = new Item();
-    resetGame();
 }
 
 Game::~Game()
@@ -76,37 +72,17 @@ Game::~Game()
     delete batList;
     delete gameOver;
     delete pipeList;
-    delete point;
+    delete score;
     delete item;
 }
 
 void Game::handleGameOver()
 {
+    GameOver::onGameOver();
     //stop scene move
     gVelocityYScene = 0;
 
     cursorMouse->setCursor(DEFAULT_CURSOR);
-}
-
-void Game::resetGame()
-{
-    init();
-
-    pipeList->reset();
-    Pipe::resetTime();
-
-    batList->reset();
-    Bat::resetTime();
-
-    point->init();
-    item->init();
-
-    boss->init();
-
-    gVelocityYScene = gInitVelocityYScene;
-
-    gameOver->reset();
-    mainBird->init(mainBirdPosX, mainBirdPosY);
 }
 
 void Game::upGameLevel()
@@ -117,8 +93,30 @@ void Game::upGameLevel()
 
 void Game::init()
 {
+    Mix_AllocateChannels(static_cast<int>(SOUND_CHANNEL_COUNT::GAME));
+
     gCurVelocityYScene = gInitVelocityYScene;
     gVelocityYScene = gInitVelocityYScene;
+
+    if (gamePaused) {
+        changeGamePaused();
+    }
+
+    pipeList->reset();
+    Pipe::resetTime();
+
+    batList->reset();
+    Bat::resetTime();
+
+    score->init();
+    item->init();
+
+    boss->init();
+
+    gVelocityYScene = gInitVelocityYScene;
+
+    gameOver->reset();
+    mainBird->init(mainBirdPosX, mainBirdPosY);
 }
 
 void Game::changeGamePaused()
@@ -130,10 +128,12 @@ void Game::changeGamePaused()
 
         cursorMouse->saveCursor();
         cursorMouse->setCursor(DEFAULT_CURSOR);
+        score->startMoving(true);
     }
     else {
         pausedTime += SDL_GetTicks() - startPauseTime;
         startPauseTime = -1;
+        score->startMoving(false);
 
         cursorMouse->loadSavedCursor();
     }
@@ -143,15 +143,15 @@ void Game::handleEvent(SDL_Event *e)
 {
     mainBird->handleEvent(e);
 
-    if (GameOver::gameIsOver()) {
+    if (GameOver::gameIsOver() || gamePaused) {
         handleGameOverButtonClicked(gameOver->handleEvent(e));
     }
-    else { //game not over
+    if (!GameOver::gameIsOver()) { //game not over
         if (e->type == SDL_KEYDOWN) {
             //Select surfaces based on key press
             switch (e->key.keysym.sym) {
                 //pause game
-                case SDLK_p:
+                case SDLK_ESCAPE:
                     changeGamePaused();
                     break;
 
@@ -171,13 +171,13 @@ void Game::handleGameOverButtonClicked(BUTTON buttonClicked)
 {
     switch (buttonClicked) {
         case HOMEBUTTON:
-            //quit game
-            SDL_Event quitEvent;
-            quitEvent.type = SDL_QUIT;
-            SDL_PushEvent(&quitEvent);
+            gameStarted = -1;
             break;
         case RETRYBUTTON:
-            resetGame();
+            init();
+            break;
+        case CONTINUE_BUTTON:
+            changeGamePaused();
             break;
 
         default: //no button clicked
@@ -193,11 +193,12 @@ void Game::render()
     background->render();
     ground->render();
     Pipe::renderAll(pipeList);
-    point->render();
     item->render(*pipeList);
     Bat::renderAll(batList);
     boss->render();
-    if (!mainBird->render()) {
+    score->render();
+    if (!mainBird->render() || gamePaused) {
+        score->startMoving(true);
         gameOver->render();
     }
 }
@@ -237,7 +238,7 @@ void Game::checkCollisionObjectBatAndPlayerBullet()
                 //next bat
                 objectA++;
                 objectB = bulletList.getBegin();
-                addPoint();
+                addScore();
             }
         }
         else {
@@ -309,7 +310,6 @@ void Game::checkGameOver()
         return;
     }
     if (mainBird->getCurrentHealth() == 0) {
-        GameOver::onGameOver();
         handleGameOver();
     }
 }
@@ -346,7 +346,7 @@ void Game::checkCollisionObjectBossAndPlayerBullet()
         Bullets *bullet = dynamic_cast<Bullets*>(*object);
         boss->decreaseHealth(bullet->getDamage());
         if (boss->isDied()) {
-            addPoint(true);
+            addScore(true);
             if (boss->isDied()) {
                 upGameLevel();
             }
@@ -356,11 +356,11 @@ void Game::checkCollisionObjectBossAndPlayerBullet()
     }
 }
 
-void Game::addPoint(bool force)
+void Game::addScore(bool force)
 {
-    if (force || point->getCurrentPoint() % gameRoundsPerLevel != gameRoundsPerLevel - 1) {
-        point->addPoint();
-        if (point->getCurrentPoint() % gameRoundsPerLevel == gameRoundsPerLevel - 1) {
+    if (force || score->getCurrentScore() % gameRoundsPerLevel != gameRoundsPerLevel - 1) {
+        score->addScore();
+        if (score->getCurrentScore() % gameRoundsPerLevel == gameRoundsPerLevel - 1) {
             boss->continueInit();
         }
     }

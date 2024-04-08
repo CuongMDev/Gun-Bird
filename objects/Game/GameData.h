@@ -17,6 +17,9 @@ int gMainBirdPosY;
 
 bool gamePaused = false;
 
+//-1:is stopping and can't start, 0: is stopping and can start, 1:is starting
+int gameStarted = 0;
+
 //-1 if game not pause
 int startPauseTime = -1;
 

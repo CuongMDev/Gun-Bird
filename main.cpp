@@ -1,5 +1,6 @@
 #include "Main/mainFunctions.h"
 #include "objects/Game/Game.h"
+#include "objects/Menu/Menu.h"
 
 int main(int argc, char *args[])
 {
@@ -13,7 +14,7 @@ int main(int argc, char *args[])
         //Event handler
         SDL_Event *e = new SDL_Event();
 
-        Game game;
+        Menu menu;
 
         while (!quit)
         {
@@ -23,19 +24,19 @@ int main(int argc, char *args[])
 
             //Handle events on list
             const Uint8 *currentKeyStates = SDL_GetKeyboardState(NULL);
-            game.handleKey(currentKeyStates);
+            menu.handleKey(currentKeyStates);
             while (SDL_PollEvent(e) != 0) {
                 //User requests quit
                 if (e->type == SDL_QUIT) {
                     quit = true;
                 }
 
-                //Handle input for the Main Bird
-                game.handleEvent(e);
+                //Handle input
+                menu.handleEvent(e);
             }
 
             //Render
-            game.render();
+            menu.render();
             cursorMouse->render();
 
             //Update screen

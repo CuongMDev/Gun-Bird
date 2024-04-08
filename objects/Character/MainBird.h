@@ -73,7 +73,6 @@ MainBird::MainBird(int x, int y) : Character(x, y, MAIN_BIRD)
 {
     health = new HealthBar(mainHealthBarPosX, mainHealthBarPosY, false, true, maxHealth);
     loadIMG();
-    init(x, y);
     loadSound();
 }
 
@@ -233,11 +232,11 @@ bool MainBird::updateState()
 
 void MainBird::renderTogRenderer()
 {
+    health->render();
     Character::renderTogRenderer();
     if (!GameOver::gameIsOver()) {
         gun.render();
     }
-    health->render();
 }
 
 bool MainBird::changeHealth(int value)

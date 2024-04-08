@@ -24,6 +24,8 @@ const std::string imagePath = "image/";
     const std::string iconImagePath = imagePath + "Icon/";
     const std::string itemImagePath = imagePath + "Item/";
     const std::string sceneImagePath = imagePath + "Scene/";
+    const std::string menuImagePath = imagePath + "Menu/";
+        const std::string menuBackgroundImagePath = menuImagePath + "MenuBackground/";
 
 const std::string soundPath = "sound/";
     const std::string gunSoundPath = soundPath + "Gun/";
@@ -34,6 +36,7 @@ const std::string soundPath = "sound/";
 
 const std::string fontPath = "font/";
     const std::string firaCodeFontPath = fontPath + "FiraCode/";
+    const std::string mightySoulyFontPath = fontPath + "MightySouly/";
 //---
 
 SDL_Window *gWindow = NULL;

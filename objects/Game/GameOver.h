@@ -11,7 +11,10 @@ enum BUTTON
 {
     NONE,
     HOMEBUTTON,
-    RETRYBUTTON
+    RETRYBUTTON,
+    CONTINUE_BUTTON,
+
+    BUTTON_COUNT
 };
 
 class GameOver {
@@ -21,6 +24,8 @@ private:
         GAMEOVER,
         HOME,
         RETRY,
+        CONTINUE,
+
         IMAGE_COUNT
     };
 
@@ -84,11 +89,14 @@ void GameOver::initPos() {
     mPosX[GAMEOVER] = SCREEN_WIDTH / 2 - mTexture[GAMEOVER].getWidth() / 2;
     mPosY[GAMEOVER] = SCREEN_HEIGHT / 2 - mTexture[GAMEOVER].getHeight();
 
-    mPosX[HOME] = SCREEN_WIDTH / 2 - mTexture[HOME].getWidth() - disBetweenHomeAndRetry / 2;
+    mPosX[HOME] = SCREEN_WIDTH / 2 - mTexture[HOME].getWidth() - disBetweenHomeAndRetry;
     mPosY[HOME] = SCREEN_HEIGHT / 2 + mTexture[HOME].getHeight() / 3;
 
     mPosX[RETRY] = SCREEN_WIDTH / 2 + disBetweenHomeAndRetry;
     mPosY[RETRY] = SCREEN_HEIGHT / 2 + mTexture[RETRY].getHeight() / 3;
+
+    mPosX[CONTINUE] = SCREEN_WIDTH / 2 - mTexture[CONTINUE].getWidth() / 2;
+    mPosY[CONTINUE] = SCREEN_HEIGHT / 2 - mTexture[CONTINUE].getHeight();
 
     for (int i = 0; i < IMAGE_COUNT; i++) {
         addScale[i] = 0;
@@ -101,10 +109,20 @@ void GameOver::loadIMG()
     mTexture[GAMEOVER].loadFromFile(gameOverImagePath + "gameover.png");
     mTexture[HOME].loadFromFile(gameOverImagePath + "home.png");
     mTexture[RETRY].loadFromFile(gameOverImagePath + "retry.png");
+    mTexture[CONTINUE].loadFromFile(gameOverImagePath + "continue.png");
 }
 
 void GameOver::render()
 {
+    //render game pause
+    if (gamePaused) {
+        mTexture[CONTINUE].render(mPosX[CONTINUE], mPosY[CONTINUE], NULL, 0, NULL, SDL_FLIP_NONE, addScale[CONTINUE]);
+        mTexture[HOME].render(mPosX[HOME], mPosY[HOME], NULL, 0, NULL, SDL_FLIP_NONE, addScale[HOME]);
+        mTexture[RETRY].render(mPosX[RETRY], mPosY[RETRY], NULL, 0, NULL, SDL_FLIP_NONE, addScale[RETRY]);
+        return;
+    }
+
+    //render game over
     SDL_Rect clip;
     clip.x = 0; clip.y = 0;
     clip.w = loadGameOverState, clip.h = mTexture[GAMEOVER].getHeight();
@@ -132,15 +150,14 @@ void GameOver::reset()
 BUTTON GameOver::handleEvent(SDL_Event *e)
 {
     BUTTON buttonCollided = NONE;
-    if (checkCollisionButton(HOMEBUTTON)) {
-        buttonCollided = HOMEBUTTON;
-    }
-    else if (checkCollisionButton(RETRYBUTTON)) {
-        buttonCollided = RETRYBUTTON;
+    for (int button = HOMEBUTTON; button < BUTTON_COUNT; button++) {
+        if (checkCollisionButton(static_cast<BUTTON>(button))) {
+            buttonCollided = static_cast<BUTTON>(button);
+        }
     }
 
-    //finished loading game over image
-    if (loadGameOverState == mTexture[GAMEOVER].getWidth()) {
+    //finished loading game over image or game paused
+    if (loadGameOverState == mTexture[GAMEOVER].getWidth() || gamePaused) {
         if (e->type == SDL_MOUSEBUTTONDOWN) {
             if (e->button.button == SDL_BUTTON_LEFT) {
                 // left mouse button pressed

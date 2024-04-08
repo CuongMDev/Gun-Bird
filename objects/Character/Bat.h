@@ -95,7 +95,7 @@ void Bat::init(int x, int y, BAT_TYPE batType)
     }
 
     setGravity(false);
-    setBorder(0, 0, SCREEN_WIDTH + getWidth(), SCREEN_HEIGHT + getHeight());
+    setBorder(-2 * getWidth(), -2 * getHeight(), SCREEN_WIDTH + 4 * getWidth(), SCREEN_HEIGHT + 4 * getHeight());
 }
 
 std::vector<LTexture> Bat::sTexture[BAT_TYPE_COUNT] = {};
@@ -138,7 +138,7 @@ bool Bat::updateState()
         //check downtime before death
         updated = !checkDownTime();
     }
-    if (mPosX <= 0 || mPosX >= SCREEN_WIDTH || mPosY < 0 || mPosY >= SCREEN_HEIGHT) {
+    if (!checkCollision(mPosX, mPosY, getWidth(), getHeight(), 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)) {
         updated = false;
     }
 
@@ -241,11 +241,14 @@ void Bat::setAngle(double angle)
 void Bat::changeType(bool isDamaged)
 {
     if (typeChanged) {
+        if (isDamaged && currentType == BAT_PURPLE_TYPE) {
+            setVelAndAngle(gMainBirdPosX, gMainBirdPosY, getPurpleBatSpeed());
+        }
         return;
     }
 
     if (isDamaged) {
-        int willChange = getRandomWithPercent({80, 20}, std::vector<int>{0, 1});
+        bool willChange = getRandomWithPercent({60, 40}, std::vector<bool>{false, true});
         if (willChange) {
             init(mPosX, mPosY, BAT_PURPLE_TYPE);
         }
@@ -257,7 +260,7 @@ void Bat::changeType(bool isDamaged)
 
     //-------------------
 
-    int willChange = getRandomWithPercent({499, 1}, std::vector<int>{0, 1});
+    bool willChange = getRandomWithPercent({299, 1}, std::vector<bool>{false, true});
     if (willChange) {
         init(mPosX, mPosY, BAT_PURPLE_TYPE);
     }

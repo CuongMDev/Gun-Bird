@@ -72,7 +72,7 @@ void calculateVelocityBetweenTwoPos(int &x1, int &y1, const int &x2, const int &
     }
 
     // Scale direction vector by speed to get velocity vector
-    x1 = (dx * speed) + trunc(2 * (double)(SCREEN_HEIGHT - y2) / SCREEN_HEIGHT);
+    x1 = (dx * speed);// + trunc(2 * (double)(SCREEN_HEIGHT - y2) / SCREEN_HEIGHT);
     y1 = dy * speed;
 }
 

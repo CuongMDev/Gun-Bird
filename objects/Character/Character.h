@@ -100,6 +100,8 @@ protected:
 public:
     virtual void onDied();
     bool isDied() const;
+
+    friend class Menu;
 };
 
 Character::Character(int x, int y, CHARACTER_TYPE character) : Object(false)
@@ -107,7 +109,6 @@ Character::Character(int x, int y, CHARACTER_TYPE character) : Object(false)
     mCharacterType = character;
 
     initType();
-    initCharacter(x, y);
 }
 
 Character::~Character()
