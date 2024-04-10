@@ -18,6 +18,9 @@ const int typePosY = 90;
 const int bulletTextPosX = 10;
 const int bulletTextPosY = 120;
 
+const int pivotX = 15;
+const int pivotY = 7;
+
 enum GUN_TYPE
 {
     PISTOL,
@@ -64,7 +67,7 @@ private:
 
     ExplosionEffect explosionEffect;
 
-    //The angle
+    //The angle to render
     double mAngle;
 
     //shoot when curShootTime=shootDelay
@@ -114,7 +117,7 @@ public:
 
     void init();
     void handleEvent(SDL_Event *e);
-    void setPosAndAngle(int x, int y);
+    void setPos(int x, int y);
     void setGun(GUN_TYPE gunType);
     //true if reloading finished
     void reload(bool finished = false);
@@ -144,8 +147,8 @@ const GunProperties Gun::gunProperties[] = {
         {3, 17, 1, 3, 10, 30, PISTOL_BULLET, PISTOL_CURSOR, "silentpistol"}, //silent pistol
         {30, 17,1,  5, 15, 1,GOLD_PISTOL_BULLET, GOLDPISTOL_CURSOR, "goldpistol"}, //gold pistol
         {5, 7, 1, 7, 7, 30,AK47_BULLET, AK47_CURSOR, "ak47"}, //AK47
-        {7, 20, 10, 20, 20, 8,WIN94_BULLET, WIN94_CURSOR, "win94"}, //Win94
-        {12, 50, 20, 20, 50, 5, SNIPER_BULLET, SNIPER_CURSOR, "sniper"}, //Sniper
+        {10, 20, 10, 20, 20, 8,WIN94_BULLET, WIN94_CURSOR, "win94"}, //Win94
+        {15, 50, 20, 20, 50, 5, SNIPER_BULLET, SNIPER_CURSOR, "sniper"}, //Sniper
 };
 const std::string Gun::soundName[] = {
         {"0"}, //shoot
@@ -203,7 +206,6 @@ void Gun::loadSound()
         }
     }
 }
-
 
 void Gun::init()
 {
@@ -450,39 +452,53 @@ void Gun::activeReloadSound()
 
 void Gun::handleEvent(SDL_Event *e)
 {
-    if (e->type == SDL_KEYDOWN) {
-        switch (e->key.keysym.sym) {
-            //reload
-            case SDLK_r:
-                reload();
-                break;
+    switch (e->type) {
+        case SDL_KEYDOWN:
+            switch (e->key.keysym.sym) {
+                //reload
+                case SDLK_r:
+                    reload();
+                    break;
 
-                //switch gun
-            case SDLK_q:
+                    //switch gun
+                case SDLK_q:
+                    switchGun(false);
+                    break;
+                case SDLK_e:
+                    switchGun(true);
+                    break;
+
+                    //-------
+
+                default:
+                    break;
+            }
+            break;
+
+        case SDL_MOUSEBUTTONDOWN:
+            if (e->button.button == SDL_BUTTON_LEFT) {
+                //left mouse
+                mouseHold = true;
+            }
+            break;
+
+        case SDL_MOUSEBUTTONUP:
+            if (e->button.button == SDL_BUTTON_LEFT) {
+                //left mouse
+                mouseHold = false;
+            }
+            break;
+
+        case SDL_MOUSEWHEEL:
+            if (e->wheel.direction == SDL_MOUSEWHEEL_NORMAL) {
                 switchGun(false);
-                break;
-            case SDLK_e:
+            }
+            else {
                 switchGun(true);
-                break;
+            }
 
-                //-------
-
-            default:
-                break;
-        }
-    }
-
-    if (e->type == SDL_MOUSEBUTTONDOWN) {
-        if (e->button.button == SDL_BUTTON_LEFT) {
-            //left mouse
-            mouseHold = true;
-        }
-    }
-    else if (e->type == SDL_MOUSEBUTTONUP) {
-        if (e->button.button == SDL_BUTTON_LEFT) {
-            //left mouse
-            mouseHold = false;
-        }
+        default:
+            break;
     }
 }
 
@@ -509,7 +525,7 @@ void Gun::renderTogRenderer()
     explosionEffect.render();
 }
 
-void Gun::setPosAndAngle(int x, int y)
+void Gun::setPos(int x, int y)
 {
     mPosX = x;
     mPosY = y;

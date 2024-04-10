@@ -175,7 +175,7 @@ void Character::onDied()
     //turn on gravity
     setGravity(true);
 
-    setBorder(0, 0, SCREEN_WIDTH, groundPosY + getHeight() / 2);
+    setBorder(borderPosX, 0, SCREEN_WIDTH + borderPosX, groundPosY + getHeight() / 2);
     if (direction == RIGHT) {
         limitAngleUpper = 90;
     }

@@ -40,6 +40,7 @@ public:
     //change x1, y1 to velocityX1, velocityY1
     void calculateVelocityToMouse(int &x, int &y, const double &speed);
     double angleToMousePos(const int &x, const int &y);
+    bool checkMouseCollision(const int &pX, const int &pY, const int &pW, const int &pH);
 
     void setCursor(CURSOR_TYPE cursor);
     //When shooting, the mouse will recoil upwards.
@@ -162,6 +163,13 @@ void CursorMouse::getAimPos(int &x, int &y)
     SDL_GetMouseState(&x, &y);
     x += getWidth() / 2;
     y += getHeight() / 2;
+}
+
+bool CursorMouse::checkMouseCollision(const int &pX, const int &pY, const int &pW, const int &pH) {
+    int mouseX, mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    return checkCollision(mouseX, mouseY, 0, 0, pX, pY, pW, pH);
 }
 
 #endif

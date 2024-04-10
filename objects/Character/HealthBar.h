@@ -38,6 +38,7 @@ public:
     void setHealth(int value);
     void setMaxHealth(int value);
     void changeHealth(int value);
+    void changeMaxHealth(int value);
 
     int getCurrentHealth() const;
 };
@@ -79,6 +80,12 @@ void HealthBar::setHealth(int value)
 
 void HealthBar::setMaxHealth(int value) {
     mMaxHP = value;
+    if (mMaxHP < 0) mMaxHP = 0;
+}
+
+void HealthBar::changeMaxHealth(int value)
+{
+    mMaxHP += value;
     if (mMaxHP < 0) mMaxHP = 0;
 }
 

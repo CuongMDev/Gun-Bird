@@ -86,12 +86,13 @@ bool initWindow()
 
 bool loadIcon()
 {
-    gIcon = loadSurfaceFromFile(iconImagePath + "/icon.png");
-    if (gIcon == NULL) {
+    SDL_Surface* iconSurface = loadSurfaceFromFile(iconImagePath + "/icon.png");
+    if (iconSurface == NULL) {
         return false;
     }
 
-    SDL_SetWindowIcon(gWindow, gIcon);
+    SDL_SetWindowIcon(gWindow, iconSurface);
+    SDL_FreeSurface(iconSurface);
     return true;
 }
 
@@ -105,7 +106,6 @@ void close()
     //Destroy window	
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
-    SDL_FreeSurface(gIcon);
     gWindow = NULL;
     gRenderer = NULL;
 

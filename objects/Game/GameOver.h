@@ -2,6 +2,7 @@
 #define GAMEOVER_H
 
 #include "../Other/LTexture.h"
+#include "../Other/SoundChannel.h"
 
 const int gameOverLoadSpeed = 10;
 const int disBetweenHomeAndRetry = 20;
@@ -38,8 +39,11 @@ private:
     //increase size of image
     int addScale[IMAGE_COUNT];
 
+    static Mix_Chunk* buttonClickSound;
+
     static bool isOver;
     void loadIMG();
+    void loadSound();
     bool checkCollisionButton(BUTTON button);
 public:
     GameOver();
@@ -53,14 +57,19 @@ public:
     void render();
     void reset();
 
+    static void playButtonSound();
+
     BUTTON handleEvent(SDL_Event *e);
 };
+
+Mix_Chunk* GameOver::buttonClickSound = {};
 
 bool GameOver::isOver = false;
 
 GameOver::GameOver()
 {
     loadIMG();
+    loadSound();
     init();
 }
 
@@ -69,6 +78,7 @@ GameOver::~GameOver()
     for (int i = 0; i < IMAGE_COUNT; i++) {
         mTexture[i].free();
     }
+    Mix_FreeChunk(buttonClickSound);
 }
 
 bool GameOver::gameIsOver() {
@@ -110,6 +120,11 @@ void GameOver::loadIMG()
     mTexture[HOME].loadFromFile(gameOverImagePath + "home.png");
     mTexture[RETRY].loadFromFile(gameOverImagePath + "retry.png");
     mTexture[CONTINUE].loadFromFile(gameOverImagePath + "continue.png");
+}
+
+void GameOver::loadSound()
+{
+    buttonClickSound = Mix_LoadWAV((buttonSoundPath + "buttonclick.wav").c_str());
 }
 
 void GameOver::render()
@@ -161,6 +176,9 @@ BUTTON GameOver::handleEvent(SDL_Event *e)
         if (e->type == SDL_MOUSEBUTTONDOWN) {
             if (e->button.button == SDL_BUTTON_LEFT) {
                 // left mouse button pressed
+                if (buttonCollided != NONE) {
+                    playButtonSound();
+                }
                 return buttonCollided;
             }
         }
@@ -171,10 +189,7 @@ BUTTON GameOver::handleEvent(SDL_Event *e)
 
 bool GameOver::checkCollisionButton(BUTTON button)
 {
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-
-    if (checkCollision(mouseX, mouseY, 0, 0, mPosX[button], mPosY[button], mTexture[button].getWidth(), mTexture[button].getHeight())) {
+    if (cursorMouse->checkMouseCollision(mPosX[button], mPosY[button], mTexture[button].getWidth(), mTexture[button].getHeight())) {
         addScale[button] = addScaleButton;
 
         return true;
@@ -185,6 +200,11 @@ bool GameOver::checkCollisionButton(BUTTON button)
 
         return false;
     }
+}
+
+void GameOver::playButtonSound()
+{
+    Mix_PlayChannel((int)BUTTON_SOUND_CHANNEL::BUTTON, buttonClickSound, 0);
 }
 
 #endif //GAMEOVER_H

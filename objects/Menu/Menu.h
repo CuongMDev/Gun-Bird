@@ -4,6 +4,8 @@
 #include "../Other/Object.h"
 #include "../Other/utils.h"
 #include <vector>
+#include "Tutorial.h"
+#include "Setting.h"
 
 enum OPTION
 {
@@ -23,9 +25,15 @@ private:
     const int imgCount = 4;
     const int imgChangeVel = 5;
 
+    Mix_Music *introSound;
+
     Game game;
 
     LTexture optionTexture[OPTION_COUNT];
+    LTexture gameTitleText;
+
+    Tutorial tutorial;
+    Setting setting;
 
     //The X and Y offsets
     int mPosX[OPTION_COUNT], mPosY[OPTION_COUNT];
@@ -40,6 +48,7 @@ private:
     void initText();
     void initPos();
     void loadIMG();
+    void loadSound();
     void startGame();
     bool checkCollisionOption(OPTION option);
 
@@ -56,10 +65,7 @@ public:
 
 bool Menu::checkCollisionOption(OPTION option)
 {
-    int mouseX, mouseY;
-    SDL_GetMouseState(&mouseX, &mouseY);
-
-    if (checkCollision(mouseX, mouseY, 0, 0, mPosX[option], mPosY[option], optionTexture[option].getWidth(), optionTexture[option].getHeight())) {
+    if (cursorMouse->checkMouseCollision(mPosX[option], mPosY[option], optionTexture[option].getWidth(), optionTexture[option].getHeight())) {
         return true;
     }
     else {
@@ -80,19 +86,34 @@ void Menu::handleEvent(SDL_Event *e)
         game.handleEvent(e);
     }
     else {
-        //none
-        optionCollided = OPTION_COUNT;
-        for (int option = PLAY; option < OPTION_COUNT; option++) {
-            if (checkCollisionOption(static_cast<OPTION>(option))) {
-                optionCollided = static_cast<OPTION>(option);
+        if (optionClicked == OPTION_COUNT) {
+            //none
+            optionCollided = OPTION_COUNT;
+            for (int option = PLAY; option < OPTION_COUNT; option++) {
+                if (checkCollisionOption(static_cast<OPTION>(option))) {
+                    optionCollided = static_cast<OPTION>(option);
+                    break;
+                }
+            }
+
+            //finished loading game over image or game paused
+            if (e->type == SDL_MOUSEBUTTONDOWN) {
+                if (e->button.button == SDL_BUTTON_LEFT) {
+                    // left mouse button pressed
+                    optionClicked = optionCollided;
+                    if (optionClicked != OPTION_COUNT) {
+                        GameOver::playButtonSound();
+                    }
+                }
             }
         }
-
-        //finished loading game over image or game paused
-        if (e->type == SDL_MOUSEBUTTONDOWN) {
-            if (e->button.button == SDL_BUTTON_LEFT) {
-                // left mouse button pressed
-                optionClicked = optionCollided;
+        else {
+            if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { //back to menu
+                //reset;
+                optionClicked = OPTION_COUNT;
+            }
+            if (optionClicked == SETTING) {
+                setting.handleEvent(e);
             }
         }
     }
@@ -100,20 +121,29 @@ void Menu::handleEvent(SDL_Event *e)
 
 Menu::Menu()
 {
-    init();
     loadIMG();
+    loadSound();
+    init();
 }
 
 Menu::~Menu()
-= default;
+{
+    Mix_FreeMusic(introSound);
+}
 
 void Menu::init()
 {
+    gameStarted = 0;
+
     curIMGRender = 0;
     curTimeRender = 0;
 
     optionCollided = OPTION_COUNT;
     optionClicked = OPTION_COUNT;
+
+    Setting::allocateChannels(static_cast<int>(SOUND_CHANNEL_COUNT::MENU));
+
+    Mix_PlayMusic(introSound, -1);
 
     initText();
     initPos();
@@ -147,6 +177,7 @@ void Menu::initPos()
 void Menu::startGame()
 {
     gameStarted = true;
+    Mix_HaltMusic();
     game.init();
 }
 
@@ -156,6 +187,13 @@ void Menu::loadIMG()
     for (int i = 0; i < imgCount; i++) {
         backgroundTexture[i].loadFromFile(menuBackgroundImagePath + "menubackground" + std::to_string(i) + ".png");
     }
+
+    gameTitleText.loadFromFile(menuBackgroundImagePath + "gameTitle.png");
+}
+
+void Menu::loadSound()
+{
+    introSound = Mix_LoadMUS((introSoundPath + "intro.wav").c_str());
 }
 
 bool Menu::updateState()
@@ -174,43 +212,46 @@ bool Menu::updateState()
 
 void Menu::render()
 {
-    switch (optionClicked) {
-        case PLAY:
-            if (gameStarted == 0) {
-                startGame();
-            }
-            game.render();
-            if (gameStarted == -1) {
-                //back to menu
-                optionClicked = OPTION_COUNT;
-                //reset
-                gameStarted = 0;
-            }
-            break;
-        case SETTING:
-            break;
-        case TUTORIAL:
-            break;
-        case EXIT:
-            //quit
-            SDL_Event quitEvent;
-            quitEvent.type = SDL_QUIT;
-            SDL_PushEvent(&quitEvent);
-            break;
+    if (optionClicked == PLAY) {
+        if (gameStarted == 0) {
+            startGame();
+        }
+        game.render();
+        if (gameStarted == -1) {
+            //back to menu
+            init();
+        }
+    }
+    else {
+        //show background
+        updateState();
+        backgroundTexture[curIMGRender].render(0, 0);
+        gameTitleText.render(260, 120);
+        switch (optionClicked) {
+            case SETTING:
+                setting.render();
+                break;
+            case TUTORIAL:
+                tutorial.render();
+                break;
+            case EXIT:
+                //quit
+                SDL_Event quitEvent;
+                quitEvent.type = SDL_QUIT;
+                SDL_PushEvent(&quitEvent);
+                break;
 
-        default:
-            //show menu
-            updateState();
-            backgroundTexture[curIMGRender].render(0, 0);
-            for (int option = PLAY; option < OPTION_COUNT; option++) {
-                if (option == optionCollided) {
-                    optionTexture[option].render(mPosX[option], mPosY[option], NULL, 0, NULL, SDL_FLIP_NONE, 30);
+            default:
+                //show menu
+                for (int option = PLAY; option < OPTION_COUNT; option++) {
+                    if (option == optionCollided) {
+                        optionTexture[option].render(mPosX[option], mPosY[option], NULL, 0, NULL, SDL_FLIP_NONE, 30);
+                    } else {
+                        optionTexture[option].render(mPosX[option], mPosY[option]);
+                    }
                 }
-                else {
-                    optionTexture[option].render(mPosX[option], mPosY[option]);
-                }
-            }
-            break;
+                break;
+        }
     }
 }
 

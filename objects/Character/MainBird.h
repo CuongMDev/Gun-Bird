@@ -20,6 +20,7 @@ private:
     {
         JUMP_SOUND,
         COLLISION_SOUND,
+        SHIELD_BREAK_SOUND,
         FAST_HEART_SOUND,
 
         BIRD_SOUND_COUNT
@@ -29,10 +30,13 @@ private:
     const int invisibleTime = 2000;
 
     std::vector<LTexture> sTexture;
+    LTexture shieldTexture;
     Gun gun;
     HealthBar *health;
 
     Mix_Chunk *birdSound[BIRD_SOUND_COUNT];
+
+    bool haveShield;
 
     //-1 if not invisible
     int invisibleEndTime;
@@ -60,9 +64,12 @@ public:
     void handleEvent(SDL_Event *e);
     void handleKey(const Uint8 *currentKeyStates);
     void addBulletCount(GUN_TYPE gunType, int bulletCount);
+    void activeShield();
 
     //return if health is changed
     bool changeHealth(int value);
+    void changeMaxHealth(int value);
+    void setToMaxHealth();
 
     int getCurrentHealth() const;
 
@@ -89,12 +96,13 @@ void MainBird::init(int x, int y)
     setSTexture(&sTexture);
     initCharacter(x, y);
     setLimitAngle(-45, 0);
-    health->setHealth(maxHealth);
-    gun.setPosAndAngle(x + getWidth() / 3, y + getHeight() / 3);
+    setToMaxHealth();
+    gun.setPos(x + getWidth() / 3, y + getHeight() / 3);
     gun.init();
 
     invisibleEndTime = -1;
     currentVisibleState = 0;
+    haveShield = false;
 }
 
 void MainBird::loadIMG()
@@ -107,6 +115,8 @@ void MainBird::loadIMG()
         sTexture[i].loadFromFile(mainBirdImagePath + "mainBird" + std::to_string(i) + ".png");
     }
     sTexture[imgCount - 1] = sTexture[1];
+
+    shieldTexture.loadFromFile(mainBirdImagePath + "shield.png");
 }
 
 void MainBird::handleEvent(SDL_Event *e)
@@ -201,6 +211,7 @@ void MainBird::loadSound()
 {
     birdSound[JUMP_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "jump.wav").c_str());
     birdSound[COLLISION_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "collision.wav").c_str());
+    birdSound[SHIELD_BREAK_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "shieldbreak.wav").c_str());
     birdSound[FAST_HEART_SOUND] = Mix_LoadWAV((mainBirdSoundPath + "fastheart.wav").c_str());
 }
 
@@ -220,7 +231,7 @@ bool MainBird::updateState()
         updateVisibleState();
     }
     if (!GameOver::gameIsOver()) {
-        gun.setPosAndAngle(mPosX + getWidth() / 3, mPosY + getHeight() / 3);
+        gun.setPos(mPosX + getWidth() / 3, mPosY + getHeight() / 3);
     }
 
     if (!isDied()) {
@@ -233,6 +244,9 @@ bool MainBird::updateState()
 void MainBird::renderTogRenderer()
 {
     health->render();
+    if (haveShield) {
+        shieldTexture.render(mPosX + getWidth() / 2 - shieldTexture.getWidth() / 2, mPosY + getHeight()/ 2 - shieldTexture.getHeight()/ 2);
+    }
     Character::renderTogRenderer();
     if (!GameOver::gameIsOver()) {
         gun.render();
@@ -245,11 +259,16 @@ bool MainBird::changeHealth(int value)
     if (value < 0 && checkVisible()) {
         return false;
     }
-    health->changeHealth(value);
-
     //if get damaged
     if (value < 0) {
-        Mix_PlayChannel((int)MAINBIRD_SOUND_CHANNEL::COLLISION, birdSound[COLLISION_SOUND], 0);
+        if (haveShield) {
+            Mix_PlayChannel((int)MAINBIRD_SOUND_CHANNEL::COLLISION, birdSound[SHIELD_BREAK_SOUND], 0);
+            haveShield = false; //remove shield
+        }
+        else {
+            Mix_PlayChannel((int)MAINBIRD_SOUND_CHANNEL::COLLISION, birdSound[COLLISION_SOUND], 0);
+            health->changeHealth(value);
+        }
         //check die
         if (health->getCurrentHealth() == 0) {
             onDied();
@@ -262,7 +281,16 @@ bool MainBird::changeHealth(int value)
 
         setInvisible(true);
     }
+    else { //value > 0
+        health->changeHealth(value);
+    }
     return true;
+}
+
+
+void MainBird::changeMaxHealth(int value)
+{
+    health->changeHealth(value);
 }
 
 void MainBird::addBulletCount(GUN_TYPE gunType, int bulletCount)
@@ -278,6 +306,16 @@ int MainBird::getCurrentHealth() const
 ObjectsList &MainBird::getBulletList()
 {
     return gun.getBulletList();
+}
+
+void MainBird::activeShield()
+{
+    haveShield = true;
+}
+
+void MainBird::setToMaxHealth()
+{
+    health->setHealth(maxHealth);
 }
 
 #endif //MAINBIRD_H

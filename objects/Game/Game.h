@@ -4,11 +4,18 @@
 #include "../AllObjects.h"
 #include "Score.h"
 #include "Item.h"
+#include "../Menu/Setting.h"
 
 class Game
 {
 private:
     const int gameRoundsPerLevel = 5;
+
+    const int scoreWhenHaveNoBoss = 100;
+    const int scoreWhenHaveBoss = 5;
+
+    int batCountNeedShootBeforeBoss;
+    int bossScore;
 
     Background *background;
     Ground *ground;
@@ -22,7 +29,8 @@ private:
 
     void handleGameOver();
     void changeGamePaused();
-    void addScore(bool force = false);
+    void addBatScore();
+    void addBossScore();
 
     void upGameLevel();
 
@@ -87,13 +95,21 @@ void Game::handleGameOver()
 
 void Game::upGameLevel()
 {
+    //recover health
+    mainBird->changeMaxHealth(2);
+    mainBird->setToMaxHealth();
+
+    batCountNeedShootBeforeBoss = gameRoundsPerLevel - 1;
+
     gCurVelocityYScene += speedChangeWhenLevelChange;
     gVelocityYScene = gCurVelocityYScene;
 }
 
 void Game::init()
 {
-    Mix_AllocateChannels(static_cast<int>(SOUND_CHANNEL_COUNT::GAME));
+    Setting::allocateChannels(static_cast<int>(SOUND_CHANNEL_COUNT::GAME));
+
+    batCountNeedShootBeforeBoss = gameRoundsPerLevel - 1;
 
     gCurVelocityYScene = gInitVelocityYScene;
     gVelocityYScene = gInitVelocityYScene;
@@ -141,10 +157,11 @@ void Game::changeGamePaused()
 
 void Game::handleEvent(SDL_Event *e)
 {
-    mainBird->handleEvent(e);
-
     if (GameOver::gameIsOver() || gamePaused) {
         handleGameOverButtonClicked(gameOver->handleEvent(e));
+    }
+    else {
+        mainBird->handleEvent(e);
     }
     if (!GameOver::gameIsOver()) { //game not over
         if (e->type == SDL_KEYDOWN) {
@@ -238,7 +255,7 @@ void Game::checkCollisionObjectBatAndPlayerBullet()
                 //next bat
                 objectA++;
                 objectB = bulletList.getBegin();
-                addScore();
+                addBatScore();
             }
         }
         else {
@@ -294,9 +311,13 @@ void Game::checkCollisionObjectsBirdAndItems()
         if (item->isGunType()) {
             mainBird->addBulletCount(Item::toGunType(item->getItemType()), item->getItemValue());
         }
-        else {
+        else if (item->isHealth()) {
             //health item
             mainBird->changeHealth(item->getItemValue());
+        }
+        else {
+            //shield
+            mainBird->activeShield();
         }
 
         item->init(true);
@@ -320,7 +341,9 @@ void Game::checkCollisionObjectsBirdAndBoss()
         return;
     }
     if (mainBird->checkCollisionObject(*boss)) {
-        mainBird->changeHealth(-1);
+        if (mainBird->changeHealth(-1)) {
+            bossScore /= 2;
+        }
     }
 }
 
@@ -332,6 +355,7 @@ void Game::checkCollisionObjectsBirdAndSyringe()
     std::_List_iterator<Object *> object;
     if (boss->getSyringeList().getCollisionObject(*mainBird, object)) {
         mainBird->changeHealth(-1);
+        bossScore /= 2;
     }
 }
 
@@ -346,24 +370,35 @@ void Game::checkCollisionObjectBossAndPlayerBullet()
         Bullets *bullet = dynamic_cast<Bullets*>(*object);
         boss->decreaseHealth(bullet->getDamage());
         if (boss->isDied()) {
-            addScore(true);
-            if (boss->isDied()) {
-                upGameLevel();
-            }
+            addBossScore();
+            upGameLevel();
         }
 
         bulletList.deleteObject(object);
     }
 }
 
-void Game::addScore(bool force)
+void Game::addBatScore()
 {
-    if (force || score->getCurrentScore() % gameRoundsPerLevel != gameRoundsPerLevel - 1) {
-        score->addScore();
-        if (score->getCurrentScore() % gameRoundsPerLevel == gameRoundsPerLevel - 1) {
-            boss->continueInit();
+    if (batCountNeedShootBeforeBoss > 0) {
+        score->addScore(scoreWhenHaveNoBoss);
+        if (batCountNeedShootBeforeBoss > 0) {
+            batCountNeedShootBeforeBoss--;
+            if (!batCountNeedShootBeforeBoss) {
+                boss->continueInit();
+                bossScore = 2000;
+            }
         }
     }
+    else {
+        //have boss
+        score->addScore(scoreWhenHaveBoss);
+    }
+}
+
+void Game::addBossScore()
+{
+    score->addScore(std::max(scoreWhenHaveNoBoss, bossScore));
 }
 
 #endif

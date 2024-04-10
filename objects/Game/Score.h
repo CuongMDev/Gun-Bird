@@ -24,7 +24,8 @@ public:
     ~Score();
 
     void init();
-    void addScore();
+    void addBatShotCount(int value);
+    void addScore(int value);
     //if false, score will return to it pos
     void startMoving(bool state);
     int getCurrentScore() const;
@@ -43,8 +44,6 @@ void Score::init()
     moveStarted = false;
     scoreCount = 0;
     setText();
-
-    scorePosWhenGameOverX = SCREEN_WIDTH / 2 - getWidth() / 2;
 }
 
 void Score::setText()
@@ -52,11 +51,12 @@ void Score::setText()
     //Set text color as black
     static SDL_Color textColor = { 245, 117, 66, 255 };
     mTexture->loadFromRenderedText("Score: " + std::to_string(scoreCount), mightySoulyFonts[FontStyle::Regular], textColor);
+    scorePosWhenGameOverX = SCREEN_WIDTH / 2 - getWidth() / 2;
 }
 
-void Score::addScore()
+void Score::addScore(int value)
 {
-    scoreCount++;
+    scoreCount += value;
     setText();
 }
 

@@ -26,6 +26,8 @@ const std::string imagePath = "image/";
     const std::string sceneImagePath = imagePath + "Scene/";
     const std::string menuImagePath = imagePath + "Menu/";
         const std::string menuBackgroundImagePath = menuImagePath + "MenuBackground/";
+        const std::string tutorialImagePath = menuImagePath + "Tutorial/";
+        const std::string settingImagePath = menuImagePath + "Setting/";
 
 const std::string soundPath = "sound/";
     const std::string gunSoundPath = soundPath + "Gun/";
@@ -33,6 +35,8 @@ const std::string soundPath = "sound/";
         const std::string mainBirdSoundPath = characterSoundPath + "MainBird/";
         const std::string bossSoundPath = characterSoundPath + "Boss/";
         const std::string itemSoundPath = characterSoundPath + "Item/";
+    const std::string buttonSoundPath = soundPath + "Button/";
+    const std::string introSoundPath = soundPath + "Intro/";
 
 const std::string fontPath = "font/";
     const std::string firaCodeFontPath = fontPath + "FiraCode/";
@@ -42,7 +46,5 @@ const std::string fontPath = "font/";
 SDL_Window *gWindow = NULL;
 //The window renderer
 SDL_Renderer *gRenderer = NULL;
-
-SDL_Surface *gIcon = NULL;
 
 #endif

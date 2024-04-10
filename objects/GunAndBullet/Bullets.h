@@ -6,9 +6,6 @@
 #include "../Scene/Pipe.h"
 #include "../Other/ObjectsList.h"
 
-const int pivotX = 15;
-const int pivotY = 7;
-
 enum BULLET_TYPE
 {
     PISTOL_BULLET,

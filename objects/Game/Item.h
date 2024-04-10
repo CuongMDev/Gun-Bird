@@ -10,6 +10,7 @@ enum ITEM_TYPE
     SNIPER_ITEM,
 
     HEALTH_ITEM,
+    SHIELD_ITEM,
 
     ITEM_COUNT
 };
@@ -29,10 +30,10 @@ private:
     Mix_Chunk *itemSound[ITEM_SOUND_COUNT];
     static LTexture circleTexture;
 
-    const std::vector<int> itemPercent = {14, 14, 14, 14, 14, 15};
+    const std::vector<int> itemPercent = {17, 17, 9, 17, 17, 9, 14};
     const std::vector<int> valuePercent = {57, 30, 10, 3};
 
-    const int timeRandom = 7000;
+    const int timeRandom = 1000;
 
     void setRandomTime(Uint32 time);
     void addRandomTime(Uint32 addTime);
@@ -63,6 +64,7 @@ public:
     ITEM_TYPE getItemType();
     int getItemValue() const;
     bool isGunType();
+    bool isHealth();
 
     static GUN_TYPE toGunType(const ITEM_TYPE &item);
     static ITEM_TYPE toItemType(const GUN_TYPE &gunType);
@@ -76,9 +78,13 @@ void Item::loadIMG()
         sTexture[item] = Gun::getTexture(toGunType((ITEM_TYPE)item));
     }
 
+    sTexture[SHIELD_ITEM] = new LTexture();
+    sTexture[SHIELD_ITEM]->loadFromFile(itemImagePath + "shield.png");
+
     //https://steamcommunity.com/sharedfiles/filedetails/?id=1694204823
     sTexture[HEALTH_ITEM] = new LTexture();
     sTexture[HEALTH_ITEM]->loadFromFile(itemImagePath + "healthitem.png");
+
     circleTexture.loadFromFile(itemImagePath + "itemcircle.png");
 }
 
@@ -109,7 +115,7 @@ void Item::addRandomTime(Uint32 addTime)
 
 void Item::randomItem(ObjectsList &pipeList)
 {
-    itemType = getRandomWithPercent(itemPercent, std::vector<ITEM_TYPE>({SILENT_PISTOL_ITEM, GOLD_PISTOL_ITEM, AK47_ITEM, WIN94_ITEM, SNIPER_ITEM, HEALTH_ITEM}));
+    itemType = getRandomWithPercent(itemPercent, std::vector<ITEM_TYPE>({SILENT_PISTOL_ITEM, GOLD_PISTOL_ITEM, AK47_ITEM, WIN94_ITEM, SNIPER_ITEM, HEALTH_ITEM, SHIELD_ITEM}));
     mTexture = sTexture[itemType];
     mPosX = SCREEN_WIDTH - getWidth();
     mPosY = getRandomNumber(circleTexture.getWidth() / 2, groundPosY - circleTexture.getWidth() / 2);
@@ -121,7 +127,7 @@ void Item::randomItem(ObjectsList &pipeList)
         if (pipeList.getCollisionObject(*this, object)) {
             mPosY += groundPosY / 3;
             if (pipeList.getCollisionObject(*this, object)) {
-                mPosY += groundPosY - mPosY;
+                mPosY = groundPosY - mPosY;
             }
         }
     }
@@ -137,6 +143,7 @@ Item::Item() : Object(false)
 
 Item::~Item()
 {
+    delete sTexture[SHIELD_ITEM];
     delete sTexture[HEALTH_ITEM];
     for (auto & sound : itemSound) {
         Mix_FreeChunk(sound);
@@ -227,6 +234,11 @@ GUN_TYPE Item::toGunType(const ITEM_TYPE &item)
 ITEM_TYPE Item::toItemType(const GUN_TYPE &gunType)
 {
     return (ITEM_TYPE)(gunType - SILENT_PISTOL + SILENT_PISTOL_ITEM);
+}
+
+bool Item::isHealth()
+{
+    return (itemType == HEALTH_ITEM);
 }
 
 #endif //ITEM_H

@@ -10,6 +10,7 @@
 double distance(const int &p1X, const int &p1Y, const int &p2X, const int &p2Y);
 int getRandomNumber(const int &l, const int &r);
 bool checkCollision(const int &p1X, const int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H);
+
 void setPosWhenInternalCollision(int &p1X, int &p1Y, const int &p1W, const int &p1H, const int &p2X, const int &p2Y, const int &p2W, const int &p2H);
 //change x1, y1 to velocityX1, velocityY1
 void calculateVelocityBetweenTwoPos(int &x1, int &y1, const int &x2, const int &y2, const double &speed);

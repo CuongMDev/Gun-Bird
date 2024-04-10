@@ -61,7 +61,7 @@ public:
     void decreaseHealth(int value);
 };
 
-const std::pair<int, int> Bat::randomTimeInterval = {500, 2000};
+const std::pair<int, int> Bat::randomTimeInterval = {500, 700};
 const std::pair<int, int> Bat::randomHeightInterval = {50, groundPosY - 50};
 Uint32 Bat::nextCreatedTime = waitTimeBeforePlaying;
 
@@ -260,7 +260,7 @@ void Bat::changeType(bool isDamaged)
 
     //-------------------
 
-    bool willChange = getRandomWithPercent({299, 1}, std::vector<bool>{false, true});
+    bool willChange = getRandomWithPercent({199, 1}, std::vector<bool>{false, true});
     if (willChange) {
         init(mPosX, mPosY, BAT_PURPLE_TYPE);
     }
