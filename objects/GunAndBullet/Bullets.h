@@ -43,11 +43,12 @@ private:
     //Angle
     double mAngle;
 
+    bool noNeedToCalculateVel;
+
     bool checkOutTheBorder();
     bool move();
 
     void loadIMG();
-    bool noNeedToCalculateVel;
     void calculateVelocity();
 
     bool updateState() override;
@@ -99,8 +100,8 @@ void Bullets::init(int x, int y, BULLET_TYPE bulletType, int damage, int desX = 
         cursorMouse->getAimPos(sDesX, sDesY);
     }
 
-    mPosX = x;
-    mPosY = y;
+    teleportToPosX(x);
+    teleportToPosY(y);
 
     mAngle = angleBetweenTwoPos(mPosX, mPosY, sDesX, sDesY);
 

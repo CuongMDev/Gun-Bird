@@ -59,8 +59,6 @@ public:
 
 Game::Game()
 {
-    pausedTime = 0;
-
     background = new Background();
     ground = new Ground(groundPosX, groundPosY);
     mainBird = new MainBird(mainBirdPosX, mainBirdPosY);
@@ -70,6 +68,8 @@ Game::Game()
     pipeList = new ObjectsList();
     score = new Score();
     item = new Item();
+
+    init();
 }
 
 Game::~Game()
@@ -78,6 +78,7 @@ Game::~Game()
     delete ground;
     delete mainBird;
     delete batList;
+    delete boss;
     delete gameOver;
     delete pipeList;
     delete score;
@@ -110,6 +111,8 @@ void Game::init()
     Setting::allocateChannels(static_cast<int>(SOUND_CHANNEL_COUNT::GAME));
 
     batCountNeedShootBeforeBoss = gameRoundsPerLevel - 1;
+
+    pausedTime = 0;
 
     gCurVelocityYScene = gInitVelocityYScene;
     gVelocityYScene = gInitVelocityYScene;
@@ -150,6 +153,12 @@ void Game::changeGamePaused()
         pausedTime += SDL_GetTicks() - startPauseTime;
         startPauseTime = -1;
         score->startMoving(false);
+
+        //add mouse up event
+        SDL_Event mouseUpEvent;
+        mouseUpEvent.type = SDL_MOUSEBUTTONUP;
+        mouseUpEvent.button.button = SDL_BUTTON_LEFT;
+        SDL_PushEvent(&mouseUpEvent);
 
         cursorMouse->loadSavedCursor();
     }

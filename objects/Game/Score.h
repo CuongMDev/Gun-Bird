@@ -38,8 +38,8 @@ Score::Score()
 
 void Score::init()
 {
-    mPosX = scorePosX;
-    mPosY = scorePosY;
+    teleportToPosX(scorePosX);
+    teleportToPosY(scorePosY);
 
     moveStarted = false;
     scoreCount = 0;

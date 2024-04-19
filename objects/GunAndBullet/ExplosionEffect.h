@@ -31,8 +31,8 @@ ExplosionEffect::~ExplosionEffect()
 
 void ExplosionEffect::start(int x, int y, double angle)
 {
-    mPosX = x;
-    mPosY = y;
+    teleportToPosX(x);
+    teleportToPosY(y);
     mAngle = angle;
 
     isStarting = true;

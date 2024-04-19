@@ -209,8 +209,8 @@ void Gun::loadSound()
 
 void Gun::init()
 {
-    mPosX = 0;
-    mPosY = 0;
+    teleportToPosX(0);
+    teleportToPosY(0);
     mAngle = 0;
     mVelRecoil = 0;
     mouseHold = false;
@@ -527,8 +527,8 @@ void Gun::renderTogRenderer()
 
 void Gun::setPos(int x, int y)
 {
-    mPosX = x;
-    mPosY = y;
+    teleportToPosX(x);
+    teleportToPosY(y);
 }
 
 void Gun::setGun(GUN_TYPE gunType)

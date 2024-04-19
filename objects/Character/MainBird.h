@@ -96,6 +96,7 @@ void MainBird::init(int x, int y)
     setSTexture(&sTexture);
     initCharacter(x, y);
     setLimitAngle(-45, 0);
+    setAlpha(255);
     setToMaxHealth();
     gun.setPos(x + getWidth() / 3, y + getHeight() / 3);
     gun.init();

@@ -27,7 +27,7 @@ private:
 
     Mix_Music *introSound;
 
-    Game game;
+    Game *game;
 
     LTexture optionTexture[OPTION_COUNT];
     LTexture gameTitleText;
@@ -76,14 +76,14 @@ bool Menu::checkCollisionOption(OPTION option)
 void Menu::handleKey(const Uint8 *currentKeyStates)
 {
     if (gameStarted) {
-        game.handleKey(currentKeyStates);
+        game->handleKey(currentKeyStates);
     }
 }
 
 void Menu::handleEvent(SDL_Event *e)
 {
     if (gameStarted) {
-        game.handleEvent(e);
+        game->handleEvent(e);
     }
     else {
         if (optionClicked == OPTION_COUNT) {
@@ -129,6 +129,7 @@ Menu::Menu()
 Menu::~Menu()
 {
     Mix_FreeMusic(introSound);
+    Mix_FreeChunk(buttonClickSound);
 }
 
 void Menu::init()
@@ -178,7 +179,7 @@ void Menu::startGame()
 {
     gameStarted = true;
     Mix_HaltMusic();
-    game.init();
+    game = new Game();
 }
 
 void Menu::loadIMG()
@@ -194,6 +195,7 @@ void Menu::loadIMG()
 void Menu::loadSound()
 {
     introSound = Mix_LoadMUS((introSoundPath + "intro.wav").c_str());
+    buttonClickSound = Mix_LoadWAV((buttonSoundPath + "buttonclick.wav").c_str());
 }
 
 bool Menu::updateState()
@@ -216,9 +218,10 @@ void Menu::render()
         if (gameStarted == 0) {
             startGame();
         }
-        game.render();
+        game->render();
         if (gameStarted == -1) {
             //back to menu
+            delete game;
             init();
         }
     }

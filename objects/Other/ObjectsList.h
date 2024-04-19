@@ -33,7 +33,9 @@ ObjectsList::ObjectsList()
 = default;
 
 ObjectsList::~ObjectsList()
-= default;
+{
+    reset();
+}
 
 int ObjectsList::count()
 {

@@ -31,7 +31,7 @@ Background::~Background()
 void Background::init()
 {
     //Initialize the offsets
-    mPosX = backgroundPosX;
+    teleportToPosX(backgroundPosX);
     mPosY = backgroundPosY;
 
     //Create the necessary SDL_Rects

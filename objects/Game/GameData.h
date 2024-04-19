@@ -2,11 +2,14 @@
 #define GAMEDATA_H
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 
 const int gInitVelocityYScene = 5;
 const int speedChangeWhenLevelChange = 3;
 
 const int waitTimeBeforePlaying = 2000;
+
+Mix_Chunk* buttonClickSound;
 
 //change when level change
 int gCurVelocityYScene;

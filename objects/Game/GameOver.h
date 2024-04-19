@@ -39,11 +39,8 @@ private:
     //increase size of image
     int addScale[IMAGE_COUNT];
 
-    static Mix_Chunk* buttonClickSound;
-
     static bool isOver;
     void loadIMG();
-    void loadSound();
     bool checkCollisionButton(BUTTON button);
 public:
     GameOver();
@@ -62,14 +59,11 @@ public:
     BUTTON handleEvent(SDL_Event *e);
 };
 
-Mix_Chunk* GameOver::buttonClickSound = {};
-
 bool GameOver::isOver = false;
 
 GameOver::GameOver()
 {
     loadIMG();
-    loadSound();
     init();
 }
 
@@ -78,7 +72,6 @@ GameOver::~GameOver()
     for (int i = 0; i < IMAGE_COUNT; i++) {
         mTexture[i].free();
     }
-    Mix_FreeChunk(buttonClickSound);
 }
 
 bool GameOver::gameIsOver() {
@@ -120,11 +113,6 @@ void GameOver::loadIMG()
     mTexture[HOME].loadFromFile(gameOverImagePath + "home.png");
     mTexture[RETRY].loadFromFile(gameOverImagePath + "retry.png");
     mTexture[CONTINUE].loadFromFile(gameOverImagePath + "continue.png");
-}
-
-void GameOver::loadSound()
-{
-    buttonClickSound = Mix_LoadWAV((buttonSoundPath + "buttonclick.wav").c_str());
 }
 
 void GameOver::render()
@@ -174,8 +162,11 @@ BUTTON GameOver::handleEvent(SDL_Event *e)
     //finished loading game over image or game paused
     if (loadGameOverState == mTexture[GAMEOVER].getWidth() || gamePaused) {
         if (e->type == SDL_MOUSEBUTTONDOWN) {
-            if (e->button.button == SDL_BUTTON_LEFT) {
-                // left mouse button pressed
+            if (e->button.button == SDL_BUTTON_LEFT) { // left mouse button pressed
+                //not receive CONTINUE_BUTTON when game is over
+                if (GameOver::isOver && buttonCollided == CONTINUE_BUTTON) {
+                    buttonCollided = NONE;
+                }
                 if (buttonCollided != NONE) {
                     playButtonSound();
                 }

@@ -123,8 +123,8 @@ void Character::initCharacter(int x, int y)
     imgChangeVel = 5;
 
     //Initialize the offsets
-    mPosX = x;
-    mPosY = y;
+    teleportToPosX(x);
+    teleportToPosY(y);
 
     mAngle = 0;
     flipMode = SDL_FLIP_NONE;

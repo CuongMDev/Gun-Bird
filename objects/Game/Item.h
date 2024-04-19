@@ -117,8 +117,8 @@ void Item::randomItem(ObjectsList &pipeList)
 {
     itemType = getRandomWithPercent(itemPercent, std::vector<ITEM_TYPE>({SILENT_PISTOL_ITEM, GOLD_PISTOL_ITEM, AK47_ITEM, WIN94_ITEM, SNIPER_ITEM, HEALTH_ITEM, SHIELD_ITEM}));
     mTexture = sTexture[itemType];
-    mPosX = SCREEN_WIDTH - getWidth();
-    mPosY = getRandomNumber(circleTexture.getWidth() / 2, groundPosY - circleTexture.getWidth() / 2);
+    teleportToPosX(SCREEN_WIDTH - getWidth());
+    teleportToPosY(getRandomNumber(circleTexture.getWidth() / 2, groundPosY - circleTexture.getWidth() / 2));
 
     //check collision with pipe
     std::_List_iterator<Object *> object;
@@ -130,6 +130,8 @@ void Item::randomItem(ObjectsList &pipeList)
                 mPosY = groundPosY - mPosY;
             }
         }
+
+        teleportToPosY(mPosY);
     }
 
     itemValue = getRandomWithPercent<int>(valuePercent, {1, 2, 3, 4});
@@ -158,8 +160,8 @@ void Item::init(bool isPickedUp)
 
     setRandomTime(getCurrentTime() + timeRandom);
     //to avoid collision with bird
-    mPosX = SCREEN_WIDTH + 1;
-    mPosY = 0;
+    teleportToPosX(SCREEN_WIDTH + 1);
+    teleportToPosY(0);
 
     itemValue = 0;
     isRendering = false;
@@ -208,7 +210,7 @@ void Item::render(ObjectsList &pipeList)
         updateState(pipeList);
     }
 
-    renderTogRenderer();
+    Object::render();
 }
 
 ITEM_TYPE Item::getItemType()

@@ -89,7 +89,7 @@ bool Pipe::checkOutTheBorder()
 void Pipe::init(int height, bool flip)
 {
     //Initialize the offsets
-    mPosX = SCREEN_WIDTH;
+    teleportToPosX(SCREEN_WIDTH);
     if (flip) {
         mPosY = height - mTexture->getHeight();
         mHeight = mTexture->getHeight();

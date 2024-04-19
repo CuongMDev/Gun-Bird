@@ -461,8 +461,8 @@ void Boss::randomMoveAttackDes(int &desX, int &desY)
 {
     bossSpeed = 25;
 
-    mPosX = getRandomNumber(0, SCREEN_WIDTH);
-    mPosY = -getHeight();
+    teleportToPosX(getRandomNumber(0, SCREEN_WIDTH));
+    teleportToPosY(-getHeight());
     desX = getRandomNumber(0, SCREEN_WIDTH);
     desY = SCREEN_HEIGHT - getHeight();
 

@@ -56,8 +56,8 @@ HealthBar::~HealthBar()
 
 void HealthBar::init(int x, int y, bool inEnemySide, bool haveShell, int maxHP)
 {
-    mPosX = x;
-    mPosY = y;
+    teleportToPosX(x);
+    teleportToPosY(y);
     mInEnemySide = inEnemySide;
     mHaveShell = haveShell;
     mMaxHP = mCurrentHP = maxHP;
