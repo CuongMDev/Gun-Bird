@@ -50,7 +50,7 @@ void Score::setText()
 {
     //Set text color as black
     static SDL_Color textColor = { 245, 117, 66, 255 };
-    mTexture->loadFromRenderedText("Score: " + std::to_string(scoreCount), mightySoulyFonts[FontStyle::Regular], textColor);
+    mTexture->loadFromRenderedText("Score: " + std::to_string(scoreCount), glueGunFonts[FontStyle::Regular], textColor);
     scorePosWhenGameOverX = SCREEN_WIDTH / 2 - getWidth() / 2;
 }
 

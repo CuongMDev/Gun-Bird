@@ -27,6 +27,7 @@ const std::string imagePath = "image/";
     const std::string menuImagePath = imagePath + "Menu/";
         const std::string menuBackgroundImagePath = menuImagePath + "MenuBackground/";
         const std::string tutorialImagePath = menuImagePath + "Tutorial/";
+        const std::string highScoresImagePath = menuImagePath + "HighScores/";
         const std::string settingImagePath = menuImagePath + "Setting/";
 
 const std::string soundPath = "sound/";
@@ -41,6 +42,11 @@ const std::string soundPath = "sound/";
 const std::string fontPath = "font/";
     const std::string firaCodeFontPath = fontPath + "FiraCode/";
     const std::string mightySoulyFontPath = fontPath + "MightySouly/";
+    const std::string glueGunFontPath = fontPath + "glueGun/";
+
+const std::string dataPath = "data/";
+    const std::string settingConfigPath = dataPath + "settingConfig.conf";
+    const std::string highScoresPath = dataPath + "highScores.conf";
 //---
 
 SDL_Window *gWindow = NULL;

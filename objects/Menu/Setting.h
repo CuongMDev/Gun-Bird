@@ -1,6 +1,9 @@
 #ifndef SETTING_H
 #define SETTING_H
 
+#include <fstream>
+#include <filesystem>
+
 class Setting
 {
 private:
@@ -43,10 +46,13 @@ private:
 
     void init();
     void loadIMG();
+    void loadSetting();
 public:
     Setting();
 
     static void allocateChannels(int channelCount);
+
+    void saveSetting();
     void handleEvent(SDL_Event *e);
     void render();
 };
@@ -58,6 +64,7 @@ Setting::Setting()
 {
     init();
     loadIMG();
+    loadSetting();
 }
 
 void Setting::init()
@@ -97,6 +104,37 @@ void Setting::render()
 
     clip.w = currentVolumeWidth[CHUNK_TYPE];
     sTexture[BAR].render(volumeBarPosX[CHUNK_TYPE], volumeBarPosY[CHUNK_TYPE], &clip);
+}
+
+void Setting::loadSetting()
+{
+    std::ifstream inFile(settingConfigPath);
+    if (!inFile.is_open()) {
+        return;
+    }
+
+    int musicVolumeWidth, chunkVolumeWidth;
+    inFile >> musicVolumeWidth >> chunkVolumeWidth;
+
+    setVolume(MUSIC_TYPE, musicVolumeWidth);
+    setVolume(CHUNK_TYPE, chunkVolumeWidth);
+
+    inFile.close();
+}
+
+void Setting::saveSetting()
+{
+    if (!std::filesystem::exists(dataPath)) {
+        std::filesystem::create_directory(dataPath);
+    }
+    std::ofstream outFile(settingConfigPath);
+    if (!outFile.is_open()) {
+        return;
+    }
+
+    outFile << currentVolumeWidth[0] << ' ' << currentVolumeWidth[1];
+
+    outFile.close();
 }
 
 void Setting::handleEvent(SDL_Event *e)

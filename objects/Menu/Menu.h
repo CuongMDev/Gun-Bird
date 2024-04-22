@@ -6,11 +6,13 @@
 #include <vector>
 #include "Tutorial.h"
 #include "Setting.h"
+#include "HighScores.h"
 
 enum OPTION
 {
     PLAY,
     SETTING,
+    HIGH_SCORES,
     TUTORIAL,
     EXIT,
 
@@ -33,6 +35,7 @@ private:
     LTexture gameTitleText;
 
     Tutorial tutorial;
+    HighScores highScores;
     Setting setting;
 
     //The X and Y offsets
@@ -110,6 +113,9 @@ void Menu::handleEvent(SDL_Event *e)
         else {
             if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_ESCAPE) { //back to menu
                 //reset;
+                if (optionClicked == SETTING) {
+                    setting.saveSetting();
+                }
                 optionClicked = OPTION_COUNT;
             }
             if (optionClicked == SETTING) {
@@ -156,6 +162,7 @@ void Menu::initText()
 
     optionTexture[PLAY].loadFromRenderedText("Play", mightySoulyFonts[FontStyle::Regular], textColor);
     optionTexture[SETTING].loadFromRenderedText("Setting", mightySoulyFonts[FontStyle::Regular], textColor);
+    optionTexture[HIGH_SCORES].loadFromRenderedText("High Scores", mightySoulyFonts[FontStyle::Regular], textColor);
     optionTexture[TUTORIAL].loadFromRenderedText("Tutorial", mightySoulyFonts[FontStyle::Regular], textColor);
     optionTexture[EXIT].loadFromRenderedText("Exit", mightySoulyFonts[FontStyle::Regular], textColor);
 }
@@ -165,14 +172,10 @@ void Menu::initPos()
     mPosX[PLAY] = SCREEN_WIDTH / 2 - optionTexture[PLAY].getWidth() / 2;
     mPosY[PLAY] = 270;
 
-    mPosX[SETTING] = SCREEN_WIDTH / 2 - optionTexture[SETTING].getWidth() / 2;
-    mPosY[SETTING] = mPosY[PLAY] + 50;
-
-    mPosX[TUTORIAL] = SCREEN_WIDTH / 2 - optionTexture[TUTORIAL].getWidth() / 2;
-    mPosY[TUTORIAL] = mPosY[SETTING] + 50;
-
-    mPosX[EXIT] = SCREEN_WIDTH / 2 - optionTexture[EXIT].getWidth() / 2;
-    mPosY[EXIT] = mPosY[TUTORIAL] + 50;
+    for (int option = PLAY + 1; option < OPTION_COUNT; option++) {
+        mPosX[option] = SCREEN_WIDTH / 2 - optionTexture[option].getWidth() / 2;
+        mPosY[option] = mPosY[option - 1] + 50;
+    }
 }
 
 void Menu::startGame()
@@ -236,6 +239,9 @@ void Menu::render()
                 break;
             case TUTORIAL:
                 tutorial.render();
+                break;
+            case HIGH_SCORES:
+                highScores.render();
                 break;
             case EXIT:
                 //quit

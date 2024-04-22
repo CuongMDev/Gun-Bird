@@ -16,7 +16,7 @@ enum class FontStyle {
 };
 
 std::map<FontStyle, TTF_Font*> firaFonts;
-std::map<FontStyle, TTF_Font*> wolfalconFonts;
+std::map<FontStyle, TTF_Font*> glueGunFonts;
 std::map<FontStyle, TTF_Font*> mightySoulyFonts;
 
 void loadFontFromFile(std::map<FontStyle, TTF_Font*> &fontContainer, std::string path, FontStyle fontStyle)
@@ -41,10 +41,16 @@ void loadMightySoulyFont()
     loadFontFromFile(mightySoulyFonts, mightySoulyFontPath + "MightySouly.ttf", FontStyle::Regular);
 }
 
+void loadMightyGlueGunFont()
+{
+    loadFontFromFile(glueGunFonts, glueGunFontPath + "GlueGun.ttf", FontStyle::Regular);
+}
+
 void loadFont()
 {
     loadFiraFont();
     loadMightySoulyFont();
+    loadMightyGlueGunFont();
 }
 
 #endif //FONT_H

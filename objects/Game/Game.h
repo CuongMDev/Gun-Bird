@@ -5,6 +5,7 @@
 #include "Score.h"
 #include "Item.h"
 #include "../Menu/Setting.h"
+#include "../Menu/HighScores.h"
 
 class Game
 {
@@ -91,13 +92,15 @@ void Game::handleGameOver()
     //stop scene move
     gVelocityYScene = 0;
 
+    HighScores::addScores(score->getCurrentScore());
+
     cursorMouse->setCursor(DEFAULT_CURSOR);
 }
 
 void Game::upGameLevel()
 {
     //recover health
-    mainBird->changeMaxHealth(2);
+    mainBird->changeMaxHealth(1);
     mainBird->setToMaxHealth();
 
     batCountNeedShootBeforeBoss = gameRoundsPerLevel - 1;
@@ -198,9 +201,15 @@ void Game::handleGameOverButtonClicked(BUTTON buttonClicked)
     switch (buttonClicked) {
         case HOMEBUTTON:
             gameStarted = -1;
+            if (!GameOver::gameIsOver()) {
+                HighScores::addScores(score->getCurrentScore());
+            }
             break;
         case RETRYBUTTON:
             init();
+            if (!GameOver::gameIsOver()) {
+                HighScores::addScores(score->getCurrentScore());
+            }
             break;
         case CONTINUE_BUTTON:
             changeGamePaused();

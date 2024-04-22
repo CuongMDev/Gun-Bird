@@ -17,6 +17,8 @@ void calculateVelocityBetweenTwoPos(int &x1, int &y1, const int &x2, const int &
 
 double angleBetweenTwoPos(const int &x1, const int &y1, const int &x2, const int &y2);
 
+std::string formatTime(tm _time);
+
 template<typename T>
 T getRandomWithPercent(const std::vector<int> &percent, const std::vector<T> &type);
 
@@ -84,6 +86,18 @@ double angleBetweenTwoPos(const int &x1, const int &y1, const int &x2, const int
     double angle = atan2(dy, dx) * 180 / M_PI;
 
     return angle;
+}
+
+std::string formatTime(tm _time)
+{
+    int hour = _time.tm_hour;   // Hour (0-23, adjust for 12-hour format if needed)
+    int minute = _time.tm_min;   // Minute (0-59)
+    int day = _time.tm_mday;          // Day of the month (1-31)
+    int month = _time.tm_mon + 1;    // Month (0-indexed, January = 0)
+    int year = _time.tm_year + 1900;  // Year since 1900
+
+    return (hour < 10 ? "0" : "") + std::to_string(hour) + ':' + (minute < 10 ? "0" : "") + std::to_string(minute) + '/'
+           + std::to_string(day) + '-' + std::to_string(month) + '-' + std::to_string(year);
 }
 
 template<typename T>
