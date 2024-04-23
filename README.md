@@ -14,6 +14,9 @@
 - [2. Building And Running](#2-building-and-running)
 - [3. How to play](#3-how-to-play)
 - [4. Parameters](#4-parameters)
+  * [A. Guns](#a-guns)
+  * [B. Recovery Items](#b-recovery-items)
+  * [C. Characters](#c-characters)
 - [5. Controls](#5-controls-included-in-the-tutorial-of-the-game)
 - [6. Scoring method](#6-scoring-method)
 - [7. Sources](#7-sources)
@@ -26,7 +29,7 @@
 Các thư viện đi kèm: **SDL2**, **SDL2-image**, **SDL2-ttf** và **SDL2-mixer**.
 
 # 1. Preview
-![bsp_img](https://i.imgur.com/mIDEP4W.png)
+![image](image/Preview/GamePreview.png)
 # 2. Building And Running
   - Chạy file **main.exe** để chơi hoặc
   - Sử dụng [MinGW-w64](https://www.mingw-w64.org/) và các thư viện [SDL2](https://www.libsdl.org/) đi kèm để build file **main.cpp**. Chạy file vừa build được để chơi.
@@ -45,9 +48,29 @@ Mỗi lần hạ gục **Boss**:
   - **Boss** sẽ được cộng thêm **30** máu cho các lần sau.
   - Tốc độ game sẽ được tăng lên.
 # 4. Parameters
-  - Số máu ban đầu: **5**
-  - Số máu **Dơi**: **12**
-  - Số máu **Boss** ban đầu: **100**
+## A. Guns
+| Súng                                                | Sức mạnh | Số đạn mỗi Băng |
+|-----------------------------------------------------|----------|-----------------|
+| <img src="image/Preview/Pistol.png" width=80>       | 3        | 7               |
+| <img src="image/Preview/SilentPistol.png" width=80> | 3        | 30              |
+| <img src="image/Preview/GoldPistol.png" width=80>   | 30       | 1               |
+| <img src="image/Preview/Ak47.png" width=120>        | 5        | 30              |
+| <img src="image/Preview/Win94.png" width=120>       | 10       | 8               |
+| <img src="image/Preview/Sniper.png" width=120>      | 15       | 5               |
+
+## B. Recovery Items
+| Vật phẩm                                          | Tác dụng                                                       |
+|---------------------------------------------------|----------------------------------------------------------------|
+| <img src="image/Preview/healthitem.png" width=50> | Hồi lại từ 1 -> 4 máu                                          |
+| <img src="image/Preview/ShieldItem.png" width=50> | Cho một lớp giáp tương đương với một lần miễn nhiễm sát thương |
+
+## C. Characters
+| Nhân vật                                                                                    | Tên                 | Số máu                                 |
+|---------------------------------------------------------------------------------------------|---------------------|----------------------------------------|
+| <img src="image/Preview/mainBird.png" width=50>                                             | **Main Bird**       | 5 + **Số Boss đã tiêu diệt được**      |
+| <img src="image/Preview/Bat.png" width=30> <img src="image/Preview/PurpleBat.png" width=30> | **Bat/ Purple Bat** | 12                                     |
+| <img src="image/Preview/Boss.png" width=100>                                                | **Boss**            | 100 + 30 x **Số Boss đã bị tiêu diệt** |
+
 # 5. Controls (Included in the Tutorial of the Game)
   - Di chuyển: **A**, **D** (trái phải).
   - Nhảy: **SPACE**.
