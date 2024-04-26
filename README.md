@@ -29,6 +29,8 @@
 Các thư viện đi kèm: **SDL2**, **SDL2-image**, **SDL2-ttf** và **SDL2-mixer**.
 
 # 1. Preview
+Demo Game: https://www.youtube.com/watch?v=C4aAln6xCpE
+
 ![image](image/Preview/GamePreview.png)
 # 2. Building And Running
   - Chạy file **main.exe** để chơi hoặc
