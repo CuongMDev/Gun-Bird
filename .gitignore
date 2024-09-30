@@ -1,6 +1,19 @@
 
 .idea/
 
+SDL/include/*
+!SDL/include/
+
+SDL/lib/*
+!SDL/lib/
+
+/SDL2.dll
+/SDL2_image.dll
+/SDL2_mixer.dll
+/SDL2_ttf.dll
+
+/main.exe
+
 data/
 
 /CMakeLists.txt
